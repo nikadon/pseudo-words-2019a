@@ -1,0 +1,2789 @@
+#+TITLE: pwords_proc_pGenerate_ORG_SYLLABES_FREQ_1st.org
+
+
+* DONE Stage 0000: Init
+** iPython ~autoreload~
+
+   - https://ipython.readthedocs.io/en/stable/config/extensions/autoreload.html
+
+   #+BEGIN_SRC ipython :session *iPython* :eval yes :results raw drawer :exports both :shebang "#!/usr/bin/env ipython\n# -*- coding: utf-8 -*-\n\n" :tangle stage_0000.py
+
+from IPython import get_ipython
+get_ipython().magic('load_ext autoreload')
+
+   #+END_SRC
+
+   #+RESULTS:
+   :RESULTS:
+   # Out[10]:
+   # output
+   : The autoreload extension is already loaded. To reload it, use:
+   :   %reload_ext autoreload
+   :
+   :END:
+
+** Imports
+
+   #+BEGIN_SRC ipython :session *iPython* :eval yes :results raw drawer :exports both :shebang "#!/usr/bin/env ipython\n# -*- coding: utf-8 -*-\n\n" :tangle stage_0000.py
+
+from init.imports    import *
+get_ipython().magic('autoreload')
+
+   #+END_SRC
+
+   #+RESULTS:
+   :RESULTS:
+   # Out[11]:
+   :END:
+
+** Load
+
+   #+BEGIN_SRC ipython :session *iPython* :eval yes :results raw drawer :exports both :shebang "#!/usr/bin/env ipython\n# -*- coding: utf-8 -*-\n\n" :tangle stage_0000.py
+
+from init.load       import *
+get_ipython().magic('autoreload')
+
+   #+END_SRC
+
+   #+RESULTS:
+   :RESULTS:
+   # Out[12]:
+   :END:
+
+** Auxiliary
+
+   #+BEGIN_SRC ipython :session *iPython* :eval yes :results raw drawer :exports both :shebang "#!/usr/bin/env ipython\n# -*- coding: utf-8 -*-\n\n" :tangle stage_0000.py
+
+from aux_nlp.aux_nlp import *
+get_ipython().magic('autoreload')
+
+   #+END_SRC
+
+   #+RESULTS:
+   :RESULTS:
+   # Out[13]:
+   :END:
+
+* DONE Stage 2001: Prepare syllables corpora
+** Proc 00: Load
+*** DONE Load =words= DataFrames
+
+    #+BEGIN_SRC ipython :session *iPython* :eval query :results raw drawer :exports both :shebang "#!/usr/bin/env ipython\n# -*- coding: utf-8 -*-\n\n" :tangle stage_0001.py
+
+# OLD VERSION
+# s2000_words = pd.read_excel( "./data_in/s0000_words.xlsx", usecols=[ "WORD", "FREQ", ], )
+
+# NEW VERSION
+s2000_words = pd.read_excel( "./data_in/from_jdo_2019-03-31-001_words_all/words_all.xlsx", usecols=[ "WORD", "FREQ", ], )
+
+# s2000_words.columns = ["WORD","FREQ"]
+
+print( "="*75 )
+print( s2000_words.shape )
+print( "="*75 )
+print( s2000_words.head( n=12 ) )
+
+    #+END_SRC
+
+    #+RESULTS:
+    :RESULTS:
+    # Out[47]:
+    # output
+    : ===========================================================================
+    : (50000, 2)
+    : ===========================================================================
+    :     WORD       FREQ
+    : 0      w  240721554
+    : 1      i  187175643
+    : 2     na  151038296
+    : 3      z  133291550
+    : 4    nie  125457390
+    : 5    się  120989072
+    : 6     to  102605682
+    : 7     do   93846762
+    : 8   jest   72687005
+    : 9     że   58400782
+    : 10     a   57234273
+    : 11     o   51093560
+    :
+    :END:
+
+** Proc 01: Cleanup =words=
+*** DONE Re-initialize (copy) =words=
+
+    #+BEGIN_SRC ipython :session *iPython* :eval yes :results raw drawer :exports both :shebang "#!/usr/bin/env ipython\n# -*- coding: utf-8 -*-\n\n" :tangle stage_0001.py
+
+s2001_words = s2000_words.copy()
+
+    #+END_SRC
+
+    #+RESULTS:
+    :RESULTS:
+    # Out[48]:
+    :END:
+
+*** DONE Sort by =FREQ=
+
+    #+BEGIN_SRC ipython :session *iPython* :eval yes :results raw drawer :exports both :shebang "#!/usr/bin/env ipython\n# -*- coding: utf-8 -*-\n\n" :tangle stage_0001.py
+
+s2001_words.sort_values( by=["FREQ"], ascending=False, axis=0, inplace=True, )
+
+    #+END_SRC
+
+    #+RESULTS:
+    :RESULTS:
+    # Out[49]:
+    :END:
+
+*** DONE Checkup: ~s2001_words~
+
+    #+BEGIN_SRC ipython :session *iPython* :eval yes :results raw drawer :exports both :shebang "#!/usr/bin/env ipython\n# -*- coding: utf-8 -*-\n\n" :tangle stage_0001.py
+
+df_list = [  s2001_words,  ]
+df_info = [ "s2001_words", ]
+df_head = 8
+df_tail = 8
+
+df_checkup_bulk( df_list=df_list, df_info=df_info, df_head=df_head, df_tail=df_tail, )
+
+    #+END_SRC
+
+    #+RESULTS:
+    :RESULTS:
+    # Out[50]:
+    # output
+    : ===========================================================================
+    : s2001_words
+    : ===========================================================================
+    : idx count: 50000
+    : row count: 2  ['WORD', 'FREQ']
+    : ---------------------------------------------------------------------------
+    : is FREQ sorted: True
+    : ---------------------------------------------------------------------------
+    :   WORD       FREQ
+    : 0    w  240721554
+    : 1    i  187175643
+    : 2   na  151038296
+    : 3    z  133291550
+    : 4  nie  125457390
+    : 5  się  120989072
+    : 6   to  102605682
+    : 7   do   93846762
+    : ---------------------------------------------------------------------------
+    :             WORD   FREQ
+    : 49991     pasmem  11452
+    : 49990     skladu  11452
+    : 49994    chwytów  11451
+    : 49995      ratuj  11451
+    : 49996  rozległej  11451
+    : 49997    minusie  11450
+    : 49998   nieuwagi  11450
+    : 49999    wiązała  11450
+    :
+    :END:
+
+*** DONE Legalize ~s2001_words_legal~
+
+    #+BEGIN_SRC ipython :session *iPython* :eval yes :results raw drawer :exports both :shebang "#!/usr/bin/env ipython\n# -*- coding: utf-8 -*-\n\n" :tangle stage_0001.py
+
+s2001_words_legal, s2001_words_illegal = words_alpha(
+    s2001_words,
+    words_col="WORD",
+    charset=alpha_pl["anycase"],
+    n_samp=32,
+    verbose=2,
+)
+
+    #+END_SRC
+
+    #+RESULTS:
+    :RESULTS:
+    # Out[51]:
+    # output
+    : ===========================================================================
+    : Got: 50000 words (rows).
+    : ===========================================================================
+    : keep: 49324 words (rows).
+    : ---------------------------------------------------------------------------
+    : sample:
+    : ---------------------------------------------------------------------------
+    :      WORD       FREQ
+    : 0       w  240721554
+    : 1       i  187175643
+    : 2      na  151038296
+    : 3       z  133291550
+    : 4     nie  125457390
+    : 5     się  120989072
+    : 6      to  102605682
+    : 7      do   93846762
+    : 8    jest   72687005
+    : 9      że   58400782
+    : 10      a   57234273
+    : 11      o   51093560
+    : 12    jak   43277567
+    : 13    ale   33611565
+    : 14     po   33257173
+    : 15     co   33158326
+    : 16     od   29281019
+    : 17     za   28148919
+    : 18    dla   26620555
+    : 19    tak   25566520
+    : 20    tym   25532630
+    : 21    czy   24521500
+    : 22  przez   22881640
+    : 23     ze   22704894
+    : 24     są   20733532
+    : 25  tylko   20127742
+    : 26     ma   19966418
+    : 27   tego   19814293
+    : 28   oraz   19039795
+    : 29    już   17502103
+    : 30     bo   17069231
+    : 31   może   16504134
+    : ===========================================================================
+    : drop: 676 words (rows).
+    : ---------------------------------------------------------------------------
+    : sample:
+    : ---------------------------------------------------------------------------
+    :                  WORD     FREQ
+    : 117               np.  4656744
+    : 304               siä  2049886
+    : 315             m.in.  1972218
+    : 322               ok.  1945727
+    : 407               ul.  1573205
+    : 449              tzw.  1450465
+    : 453              itp.  1445597
+    : 523              tys.  1289825
+    : 524               św.  1280753
+    : 578             godz.  1165496
+    : 610              art.  1116173
+    : 613               zł.  1108532
+    : 644             proc.  1062370
+    : 726              itd.   928309
+    : 774               ĺźe   875675
+    : 864               ks.   792808
+    : 899             prof.   765817
+    : 1168              im.   601625
+    : 1219              tj.   579279
+    : 1341             ust.   525245
+    : 1557              br.   462726
+    : 1592  forum.gazeta.pl   454898
+    : 1618              ds.   447460
+    : 1639               j.   441833
+    : 1647               m.   440505
+    : 1701               a.   428988
+    : 1723              pt.   424456
+    : 1761             tzn.   414062
+    : 1887              ps.   389055
+    : 1907               m2   386474
+    : 2029               p.   366967
+    : 2124             min.   351350
+    :
+    :END:
+
+*** DONE Drop duplicates ~s2001_words_legal_uniqe~ (=subset=None=)
+
+    #+BEGIN_SRC ipython :session *iPython* :eval yes :results raw drawer :exports both :shebang "#!/usr/bin/env ipython\n# -*- coding: utf-8 -*-\n\n" :tangle stage_0001.py
+
+s2001_words_legal_uniqe, s2001_words_legal_dupes = df_dupes(
+    df_data=s2001_words_legal,
+    subset=None, # consider all columns
+    keep='first',
+    n_samp=12,
+    verbose=2,
+)
+
+    #+END_SRC
+
+    #+RESULTS:
+    :RESULTS:
+    # Out[52]:
+    # output
+    : ===========================================================================
+    : Got: 49324 words (rows).
+    : ===========================================================================
+    : KEEP: 49324 words (rows).
+    : keep=first
+    : ---------------------------------------------------------------------------
+    : sample:
+    : ---------------------------------------------------------------------------
+    :     WORD       FREQ
+    : 0      w  240721554
+    : 1      i  187175643
+    : 2     na  151038296
+    : 3      z  133291550
+    : 4    nie  125457390
+    : 5    się  120989072
+    : 6     to  102605682
+    : 7     do   93846762
+    : 8   jest   72687005
+    : 9     że   58400782
+    : 10     a   57234273
+    : 11     o   51093560
+    : ===========================================================================
+    : DROP: 0 words (rows).
+    : keep=first
+    : ---------------------------------------------------------------------------
+    : sample:
+    : ---------------------------------------------------------------------------
+    : Empty DataFrame
+    : Columns: [WORD, FREQ]
+    : Index: []
+    :
+    :END:
+
+*** DONE Hyphenation
+
+    #+BEGIN_SRC ipython :session *iPython* :eval yes :results raw drawer :exports both :shebang "#!/usr/bin/env ipython\n# -*- coding: utf-8 -*-\n\n" :tangle stage_0003.py
+
+s2001_words_legal_uniqe_hyphen = words_hyphen( s2001_words_legal_uniqe, field="WORD", verbose=0, )
+
+    #+END_SRC
+
+    #+RESULTS:
+    :RESULTS:
+    # Out[53]:
+    :END:
+
+*** DONE Drop =words= that consist of less that two syllables
+
+    Remove words that consist of just one syllable.
+
+    #+BEGIN_SRC ipython :session *iPython* :eval yes :results raw drawer :exports both :shebang "#!/usr/bin/env ipython\n# -*- coding: utf-8 -*-\n\n" :tangle stage_0055.py
+
+tmp_min_syll = 1
+
+tmp_words_syll_lt_min = s2001_words_legal_uniqe_hyphen["SYLL_COUNT"] < tmp_min_syll
+
+print(  "="*75 )
+print(  "          tmp_min_syll: " + str( tmp_min_syll ) )
+print(  "-"*75 )
+print(  " tmp_words_syll_lt_min: " + str( sum(  tmp_words_syll_lt_min ) ) )
+print(  "~tmp_words_syll_lt_min: " + str( sum( ~tmp_words_syll_lt_min ) ) )
+
+s2001_words_legal_uniqe_hyphen_min_1_sylls = s2001_words_legal_uniqe_hyphen[ ~tmp_words_syll_lt_min ].copy()
+
+
+tmp_min_syll = 2
+
+tmp_words_syll_lt_min = s2001_words_legal_uniqe_hyphen["SYLL_COUNT"] < tmp_min_syll
+
+print(  "="*75 )
+print(  "          tmp_min_syll: " + str( tmp_min_syll ) )
+print(  "-"*75 )
+print(  " tmp_words_syll_lt_min: " + str( sum(  tmp_words_syll_lt_min ) ) )
+print(  "~tmp_words_syll_lt_min: " + str( sum( ~tmp_words_syll_lt_min ) ) )
+
+s2001_words_legal_uniqe_hyphen_min_2_sylls = s2001_words_legal_uniqe_hyphen[ ~tmp_words_syll_lt_min ].copy()
+
+    #+END_SRC
+
+    #+RESULTS:
+    :RESULTS:
+    # Out[55]:
+    # output
+    : ===========================================================================
+    :           tmp_min_syll: 1
+    : ---------------------------------------------------------------------------
+    :  tmp_words_syll_lt_min: 0
+    : ~tmp_words_syll_lt_min: 49324
+    : ===========================================================================
+    :           tmp_min_syll: 2
+    : ---------------------------------------------------------------------------
+    :  tmp_words_syll_lt_min: 3005
+    : ~tmp_words_syll_lt_min: 46319
+    :
+    :END:
+
+** Proc 02: Produce syllables information
+*** DONE Extract first, penultimate and ultimate syllables
+
+    #+BEGIN_SRC ipython :session *iPython* :eval yes :results raw drawer :exports both :shebang "#!/usr/bin/env ipython\n# -*- coding: utf-8 -*-\n\n" :tangle stage_0055.py
+
+s2001_words_legal_uniqe_hyphen_min_2_sylls["SYLL_FIRST"] = s2001_words_legal_uniqe_hyphen_min_2_sylls.apply( lambda x: x.SYLL.split("-",-1)[0],  axis=1, )
+s2001_words_legal_uniqe_hyphen_min_2_sylls["SYLL_START"] = s2001_words_legal_uniqe_hyphen_min_2_sylls.apply( lambda x: x.SYLL.rsplit("-",1)[0],  axis=1, )
+s2001_words_legal_uniqe_hyphen_min_2_sylls["SYLL_PENUL"] = s2001_words_legal_uniqe_hyphen_min_2_sylls.apply( lambda x: x.SYLL.split("-",-1)[-2], axis=1, )
+s2001_words_legal_uniqe_hyphen_min_2_sylls["SYLL_ULTIM"] = s2001_words_legal_uniqe_hyphen_min_2_sylls.apply( lambda x: x.SYLL.split("-",-1)[-1], axis=1, )
+
+s2001_words_legal_uniqe_hyphen_min_1_sylls["SYLL_FIRST"] = s2001_words_legal_uniqe_hyphen_min_1_sylls.apply( lambda x: x.SYLL.split("-",-1)[0],  axis=1, )
+s2001_words_legal_uniqe_hyphen_min_1_sylls["SYLL_START"] = s2001_words_legal_uniqe_hyphen_min_1_sylls.apply( lambda x: x.SYLL.rsplit("-",1)[0],  axis=1, )
+# s2001_words_legal_uniqe_hyphen_min_1_sylls["SYLL_PENUL"] = s2001_words_legal_uniqe_hyphen_min_1_sylls.apply( lambda x: x.SYLL.split("-",-1)[-2], axis=1, )
+s2001_words_legal_uniqe_hyphen_min_1_sylls["SYLL_ULTIM"] = s2001_words_legal_uniqe_hyphen_min_1_sylls.apply( lambda x: x.SYLL.split("-",-1)[-1], axis=1, )
+
+    #+END_SRC
+
+    #+RESULTS:
+    :RESULTS:
+    # Out[56]:
+    :END:
+
+
+*** DONE Checkup words with at least 2 syllables
+
+    #+BEGIN_SRC ipython :session *iPython* :eval yes :results raw drawer :exports both :shebang "#!/usr/bin/env ipython\n# -*- coding: utf-8 -*-\n\n" :tangle stage_0003.py
+
+df_list = [  s2001_words_legal_uniqe_hyphen_min_2_sylls,  ]
+df_info = [ "s2001_words_legal_uniqe_hyphen_min_2_sylls", ]
+df_head = 12
+df_tail = 12
+
+df_checkup_bulk( df_list=df_list, df_info=df_info, df_head=df_head, df_tail=df_tail, )
+
+    #+END_SRC
+
+    #+RESULTS:
+    :RESULTS:
+    # Out[61]:
+    # output
+    : ===========================================================================
+    : s2001_words_legal_uniqe_hyphen_min_2_sylls
+    : ===========================================================================
+    : idx count: 46319
+    : row count: 9  ['WORD', 'FREQ', 'SYLL', 'SYLL_COUNT', 'CHAR_COUNT', 'SYLL_FIRST', 'SYLL_START', 'SYLL_PENUL', 'SYLL_ULTIM']
+    : ---------------------------------------------------------------------------
+    : is FREQ sorted: True
+    : ---------------------------------------------------------------------------
+    :        WORD      FREQ      SYLL  SYLL_COUNT  CHAR_COUNT SYLL_FIRST SYLL_START SYLL_PENUL SYLL_ULTIM
+    : 13      ale  33611565      a-le           2           3          a          a          a         le
+    : 25    tylko  20127742    tyl-ko           2           5        tyl        tyl        tyl         ko
+    : 27     tego  19814293     te-go           2           4         te         te         te         go
+    : 28     oraz  19039795     o-raz           2           4          o          o          o        raz
+    : 31     może  16504134     mo-że           2           4         mo         mo         mo         że
+    : 33   bardzo  14741786   bar-dzo           2           6        bar        bar        bar        dzo
+    : 34   będzie  13040938   bę-dzie           2           6         bę         bę         bę       dzie
+    : 35    które  12780909    któ-re           2           5        któ        któ        któ         re
+    : 39     roku  11730588     ro-ku           2           4         ro         ro         ro         ku
+    : 42     jego  11441788     je-go           2           4         je         je         je         go
+    : 44    można  11315839    moż-na           2           5        moż        moż        moż         na
+    : 47  jeszcze  11278341  jesz-cze           2           7       jesz       jesz       jesz        cze
+    : ---------------------------------------------------------------------------
+    :                  WORD   FREQ                SYLL  SYLL_COUNT  CHAR_COUNT SYLL_FIRST      SYLL_START SYLL_PENUL SYLL_ULTIM
+    : 49988   powierzchowne  11453    po-wierz-chow-ne           4          13         po   po-wierz-chow       chow         ne
+    : 49992     borowskiego  11452      bo-row-skie-go           4          11         bo     bo-row-skie       skie         go
+    : 49993  przekierowanie  11452  prze-kie-ro-wa-nie           5          14       prze  prze-kie-ro-wa         wa        nie
+    : 49989          tlenem  11452             tle-nem           2           6        tle             tle        tle        nem
+    : 49991          pasmem  11452             pa-smem           2           6         pa              pa         pa       smem
+    : 49990          skladu  11452             skla-du           2           6       skla            skla       skla         du
+    : 49994         chwytów  11451            chwy-tów           2           7       chwy            chwy       chwy        tów
+    : 49995           ratuj  11451              ra-tuj           2           5         ra              ra         ra        tuj
+    : 49996       rozległej  11451         roz-le-głej           3           9        roz          roz-le         le       głej
+    : 49997         minusie  11450           mi-nu-sie           3           7         mi           mi-nu         nu        sie
+    : 49998        nieuwagi  11450          nie-uwa-gi           3           8        nie         nie-uwa        uwa         gi
+    : 49999         wiązała  11450           wią-za-ła           3           7        wią          wią-za         za         ła
+    :
+    :END:
+
+*** DONE Checkup words with at least 1 syllable
+
+    #+BEGIN_SRC ipython :session *iPython* :eval yes :results raw drawer :exports both :shebang "#!/usr/bin/env ipython\n# -*- coding: utf-8 -*-\n\n" :tangle stage_0003.py
+
+df_list = [  s2001_words_legal_uniqe_hyphen_min_1_sylls,  ]
+df_info = [ "s2001_words_legal_uniqe_hyphen_min_1_sylls", ]
+df_head = 12
+df_tail = 12
+
+df_checkup_bulk( df_list=df_list, df_info=df_info, df_head=df_head, df_tail=df_tail, )
+
+    #+END_SRC
+
+    #+RESULTS:
+    :RESULTS:
+    # Out[59]:
+    # output
+    : ===========================================================================
+    : s2001_words_legal_uniqe_hyphen_min_1_sylls
+    : ===========================================================================
+    : idx count: 49324
+    : row count: 8  ['WORD', 'FREQ', 'SYLL', 'SYLL_COUNT', 'CHAR_COUNT', 'SYLL_FIRST', 'SYLL_START', 'SYLL_ULTIM']
+    : ---------------------------------------------------------------------------
+    : is FREQ sorted: True
+    : ---------------------------------------------------------------------------
+    :     WORD       FREQ  SYLL  SYLL_COUNT  CHAR_COUNT SYLL_FIRST SYLL_START SYLL_ULTIM
+    : 0      w  240721554     w           1           1          w          w          w
+    : 1      i  187175643     i           1           1          i          i          i
+    : 2     na  151038296    na           1           2         na         na         na
+    : 3      z  133291550     z           1           1          z          z          z
+    : 4    nie  125457390   nie           1           3        nie        nie        nie
+    : 5    się  120989072   się           1           3        się        się        się
+    : 6     to  102605682    to           1           2         to         to         to
+    : 7     do   93846762    do           1           2         do         do         do
+    : 8   jest   72687005  jest           1           4       jest       jest       jest
+    : 9     że   58400782    że           1           2         że         że         że
+    : 10     a   57234273     a           1           1          a          a          a
+    : 11     o   51093560     o           1           1          o          o          o
+    : ---------------------------------------------------------------------------
+    :                  WORD   FREQ                SYLL  SYLL_COUNT  CHAR_COUNT SYLL_FIRST      SYLL_START SYLL_ULTIM
+    : 49988   powierzchowne  11453    po-wierz-chow-ne           4          13         po   po-wierz-chow         ne
+    : 49992     borowskiego  11452      bo-row-skie-go           4          11         bo     bo-row-skie         go
+    : 49993  przekierowanie  11452  prze-kie-ro-wa-nie           5          14       prze  prze-kie-ro-wa        nie
+    : 49989          tlenem  11452             tle-nem           2           6        tle             tle        nem
+    : 49991          pasmem  11452             pa-smem           2           6         pa              pa       smem
+    : 49990          skladu  11452             skla-du           2           6       skla            skla         du
+    : 49994         chwytów  11451            chwy-tów           2           7       chwy            chwy        tów
+    : 49995           ratuj  11451              ra-tuj           2           5         ra              ra        tuj
+    : 49996       rozległej  11451         roz-le-głej           3           9        roz          roz-le       głej
+    : 49997         minusie  11450           mi-nu-sie           3           7         mi           mi-nu        sie
+    : 49998        nieuwagi  11450          nie-uwa-gi           3           8        nie         nie-uwa         gi
+    : 49999         wiązała  11450           wią-za-ła           3           7        wią          wią-za         ła
+    :
+    :END:
+
+*** DONE Produce 1st syllables corpora on the basis of words with at least 2 syllables
+
+    #+BEGIN_SRC ipython :session *iPython* :eval yes :results raw drawer :exports both :shebang "#!/usr/bin/env ipython\n# -*- coding: utf-8 -*-\n\n" :tangle yes
+
+s2001_words_sylls_1st_freq_min_2_sylls = words_to_sylls_corp( s2001_words_legal_uniqe_hyphen_min_2_sylls, df_sylls_corp=None, syll_col="SYLL_FIRST", freq_col="FREQ", limit=None, exclude_last_syll=False, verbose=0, )
+s2001_words_sylls_1st_freq_min_2_sylls.sort_values( by=["COUNT",], axis=0, ascending=False, inplace=True, )
+
+# Emergency save
+df_to_xlsx( df_data=s2001_words_sylls_1st_freq_min_2_sylls , df_name="s2001_words_sylls_1st_freq_min_2_sylls" , df_path="data_out", add_time=False, verbose=1, )
+
+    #+END_SRC
+
+    #+RESULTS:
+    :RESULTS:
+    # Out[63]:
+    # output
+    : Saving DataFrame as: data_out/s2001_words_sylls_1st_freq_min_2_sylls.xlsx
+    :
+    :END:
+
+*** DONE Produce 1st syllables corpora on the basis of words with at least 1 syllables
+
+    #+BEGIN_SRC ipython :session *iPython* :eval yes :results raw drawer :exports both :shebang "#!/usr/bin/env ipython\n# -*- coding: utf-8 -*-\n\n" :tangle yes
+
+s2001_words_sylls_1st_freq_min_1_sylls = words_to_sylls_corp( s2001_words_legal_uniqe_hyphen_min_1_sylls, df_sylls_corp=None, syll_col="SYLL_FIRST", freq_col="FREQ", limit=None, exclude_last_syll=False, verbose=0, )
+s2001_words_sylls_1st_freq_min_1_sylls.sort_values( by=["COUNT",], axis=0, ascending=False, inplace=True, )
+
+# Emergency save
+df_to_xlsx( df_data=s2001_words_sylls_1st_freq_min_1_sylls , df_name="s2001_words_sylls_1st_freq_min_1_sylls" , df_path="data_out", add_time=False, verbose=1, )
+
+    #+END_SRC
+
+    #+RESULTS:
+    :RESULTS:
+    # Out[62]:
+    # output
+    : Saving DataFrame as: data_out/s2001_words_sylls_1st_freq_min_1_sylls.xlsx
+    :
+    :END:
+
+*** DONE Produce ANY syllables corpora on the basis of words with at least 1 syllables
+
+    #+BEGIN_SRC ipython :session *iPython* :eval yes :results raw drawer :exports both :shebang "#!/usr/bin/env ipython\n# -*- coding: utf-8 -*-\n\n" :tangle yes
+
+s2001_words_sylls_ANY_freq_min_1_sylls = words_to_sylls_corp( s2001_words_legal_uniqe_hyphen_min_1_sylls, df_sylls_corp=None, syll_col="SYLL", freq_col="FREQ", limit=None, exclude_last_syll=False, verbose=0, )
+s2001_words_sylls_ANY_freq_min_1_sylls.sort_values( by=["COUNT",], axis=0, ascending=False, inplace=True, )
+
+# Emergency save
+df_to_xlsx( df_data=s2001_words_sylls_ANY_freq_min_1_sylls , df_name="s2001_words_sylls_ANY_freq_min_1_sylls" , df_path="data_out", add_time=False, verbose=1, )
+
+    #+END_SRC
+
+    #+RESULTS:
+    :RESULTS:
+    # Out[71]:
+    # output
+    : Saving DataFrame as: data_out/s2001_words_sylls_ANY_freq_min_1_sylls.xlsx
+    :
+    :END:
+
+*** DONE Checkup 1st syllables corpora with at least 2 syllables
+
+    #+BEGIN_SRC ipython :session *iPython* :eval yes :results raw drawer :exports both :shebang "#!/usr/bin/env ipython\n# -*- coding: utf-8 -*-\n\n" :tangle stage_0003.py
+
+df_list = [  s2001_words_sylls_1st_freq_min_2_sylls,  ]
+df_info = [ "s2001_words_sylls_1st_freq_min_2_sylls", ]
+df_head = 12
+df_tail = 12
+
+df_checkup_bulk( df_list=df_list, df_info=df_info, df_head=df_head, df_tail=df_tail, )
+
+    #+END_SRC
+
+    #+RESULTS:
+    :RESULTS:
+    # Out[73]:
+    # output
+    : ===========================================================================
+    : s2001_words_sylls_1st_freq_min_2_sylls
+    : ===========================================================================
+    : idx count: 2178
+    : row count: 2  ['SYLL', 'COUNT']
+    : ---------------------------------------------------------------------------
+    :     SYLL      COUNT
+    : 0      a   68127822
+    : 1    tyl   20418440
+    : 2     te   51458465
+    : 3      o  159914508
+    : 4     mo   62894173
+    : 5    bar   20908548
+    : 6     bę   22942059
+    : 7    któ   51542820
+    : 8     ro   40705022
+    : 9     je   47574171
+    : 10   moż   17619534
+    : 11  jesz   11317388
+    : ---------------------------------------------------------------------------
+    :         SYLL  COUNT
+    : 2166   chlew  11613
+    : 2167     bec  11607
+    : 2168    gwoź  11587
+    : 2169     red  11548
+    : 2170   schow  11544
+    : 2171     łez  11536
+    : 2172     pha  11536
+    : 2173    ptac  11532
+    : 2174    spóź  11531
+    : 2175  szczaw  11508
+    : 2176     żwi  11478
+    : 2177   krost  11460
+    :
+    :END:
+
+*** DONE Checkup 1st syllables corpora with at least 1 syllables
+
+    #+BEGIN_SRC ipython :session *iPython* :eval yes :results raw drawer :exports both :shebang "#!/usr/bin/env ipython\n# -*- coding: utf-8 -*-\n\n" :tangle stage_0003.py
+
+df_list = [  s2001_words_sylls_1st_freq_min_1_sylls,  ]
+df_info = [ "s2001_words_sylls_1st_freq_min_1_sylls", ]
+df_head = 12
+df_tail = 12
+
+df_checkup_bulk( df_list=df_list, df_info=df_info, df_head=df_head, df_tail=df_tail, )
+
+    #+END_SRC
+
+    #+RESULTS:
+    :RESULTS:
+    # Out[72]:
+    # output
+    : ===========================================================================
+    : s2001_words_sylls_1st_freq_min_1_sylls
+    : ===========================================================================
+    : idx count: 4477
+    : row count: 2  ['SYLL', 'COUNT']
+    : ---------------------------------------------------------------------------
+    :     SYLL      COUNT
+    : 0      w  240721554
+    : 1      i  205223831
+    : 2     na  235483957
+    : 3      z  133291550
+    : 4    nie  166322355
+    : 5    się  121537472
+    : 6     to  110549382
+    : 7     do  168378078
+    : 8   jest   72687005
+    : 9     że   64324198
+    : 10     a  125362095
+    : 11     o  211008068
+    : ---------------------------------------------------------------------------
+    :         SYLL  COUNT
+    : 4465     opp  11512
+    : 4466     ppc  11508
+    : 4467  szczaw  11508
+    : 4468    bral  11504
+    : 4469      hg  11501
+    : 4470     psv  11494
+    : 4471    xxii  11492
+    : 4472     żwi  11478
+    : 4473   grześ  11477
+    : 4474     ceł  11462
+    : 4475   krost  11460
+    : 4476    stój  11459
+    :
+    :END:
+
+*** DONE Checkup ANY syllables corpora with at least 1 syllables
+
+    #+BEGIN_SRC ipython :session *iPython* :eval yes :results raw drawer :exports both :shebang "#!/usr/bin/env ipython\n# -*- coding: utf-8 -*-\n\n" :tangle stage_0003.py
+
+df_list = [  s2001_words_sylls_ANY_freq_min_1_sylls,  ]
+df_info = [ "s2001_words_sylls_ANY_freq_min_1_sylls", ]
+df_head = 12
+df_tail = 12
+
+df_checkup_bulk( df_list=df_list, df_info=df_info, df_head=df_head, df_tail=df_tail, )
+
+    #+END_SRC
+
+    #+RESULTS:
+    :RESULTS:
+    # Out[74]:
+    # output
+    : ===========================================================================
+    : s2001_words_sylls_ANY_freq_min_1_sylls
+    : ===========================================================================
+    : idx count: 7072
+    : row count: 2  ['SYLL', 'COUNT']
+    : ---------------------------------------------------------------------------
+    :    SYLL      COUNT
+    : 4   nie  330386171
+    : 2    na  328495489
+    : 14   po  287191469
+    : 0     w  240721554
+    : 11    o  212152294
+    : 1     i  208880586
+    : 7    do  202590909
+    : 17   za  183476380
+    : 6    to  165489968
+    : 29   go  164785362
+    : 26   ko  150752001
+    : 3     z  133291550
+    : ---------------------------------------------------------------------------
+    :        SYLL  COUNT
+    : 7060   bral  11504
+    : 7061     hg  11501
+    : 7062    eko  11497
+    : 7063    psv  11494
+    : 7064   xxii  11492
+    : 7065    żwi  11478
+    : 7066  grześ  11477
+    : 7067   riel  11475
+    : 7068  iunkt  11473
+    : 7069    ceł  11462
+    : 7070  krost  11460
+    : 7071    lce  11454
+    :
+    :END:
+
+** Proc 90: Save
+*** DONE Save
+
+    #+BEGIN_SRC ipython :session *iPython* :eval yes :results raw drawer :exports both :shebang "#!/usr/bin/env ipython\n# -*- coding: utf-8 -*-\n\n" :tangle stage_0005.py
+
+s2001_words_sylls_1st_freq_min_2_sylls.sort_values( by=["COUNT",], axis=0, ascending=False, inplace=True, )
+s2001_words_sylls_1st_freq_min_1_sylls.sort_values( by=["COUNT",], axis=0, ascending=False, inplace=True, )
+s2001_words_sylls_ANY_freq_min_1_sylls.sort_values( by=["COUNT",], axis=0, ascending=False, inplace=True, )
+
+DEMO_MODE = False
+
+if not DEMO_MODE:
+    df_to_xlsx( df_data=s2001_words_sylls_1st_freq_min_1_sylls , df_name="s2001_words_sylls_1st_freq_min_1_sylls" , df_path="data_out", add_time=False, verbose=1, )
+    df_to_xlsx( df_data=s2001_words_sylls_1st_freq_min_2_sylls , df_name="s2001_words_sylls_1st_freq_min_2_sylls" , df_path="data_out", add_time=False, verbose=1, )
+    df_to_xlsx( df_data=s2001_words_sylls_ANY_freq_min_1_sylls , df_name="s2001_words_sylls_ANY_freq_min_1_sylls" , df_path="data_out", add_time=False, verbose=1, )
+    print( "="*75 )
+    print("Saved *.xlsx")
+else:
+    print("*** Not saving any *.xlsx files -- DEMO_MODE is ON!!! ***")
+
+    #+END_SRC
+
+    #+RESULTS:
+    :RESULTS:
+    # Out[80]:
+    # output
+    : Saving DataFrame as: data_out/s2001_words_sylls_1st_freq_min_1_sylls.xlsx
+    : Saving DataFrame as: data_out/s2001_words_sylls_1st_freq_min_2_sylls.xlsx
+    : Saving DataFrame as: data_out/s2001_words_sylls_ANY_freq_min_1_sylls.xlsx
+    : ===========================================================================
+    : Saved *.xlsx
+    :
+    :END:
+
+* DONE Stage 2002: Merge syllables corpora with MZF sheet
+** Proc 00: Load
+*** DONE Load =sylls=
+
+    #+BEGIN_SRC ipython :session *iPython* :eval query :results raw drawer :exports both :shebang "#!/usr/bin/env ipython\n# -*- coding: utf-8 -*-\n\n" :tangle stage_0001.py
+
+s2002_sylls_1st_freq_min_2 = pd.read_excel( "./data_out/s2001_words_sylls_1st_freq_min_2_sylls.xlsx", )
+s2002_sylls_1st_freq_min_1 = pd.read_excel( "./data_out/s2001_words_sylls_1st_freq_min_1_sylls.xlsx", )
+s2002_sylls_ANY_freq_min_1 = pd.read_excel( "./data_out/s2001_words_sylls_ANY_freq_min_1_sylls.xlsx", )
+
+s2002_sylls_1st_freq_min_2 = s2002_sylls_1st_freq_min_2[[ "SYLL", "COUNT" ]]
+s2002_sylls_1st_freq_min_1 = s2002_sylls_1st_freq_min_1[[ "SYLL", "COUNT" ]]
+s2002_sylls_ANY_freq_min_1 = s2002_sylls_ANY_freq_min_1[[ "SYLL", "COUNT" ]]
+
+print( "="*75 )
+print( "s2002_sylls_1st_freq_min_2.shape: " + str( s2002_sylls_1st_freq_min_2.shape ) )
+print( "s2002_sylls_1st_freq_min_1.shape: " + str( s2002_sylls_1st_freq_min_1.shape ) )
+print( "s2002_sylls_ANY_freq_min_1.shape: " + str( s2002_sylls_ANY_freq_min_1.shape ) )
+print( "="*75 )
+print( s2002_sylls_1st_freq_min_2.head( n=6 ) )
+print( "="*75 )
+print( s2002_sylls_1st_freq_min_1.head( n=6 ) )
+print( "="*75 )
+print( s2002_sylls_ANY_freq_min_1.head( n=6 ) )
+
+    #+END_SRC
+
+    #+RESULTS:
+    :RESULTS:
+    # Out[122]:
+    # output
+    : ===========================================================================
+    : s2002_sylls_1st_freq_min_2.shape: (2178, 2)
+    : s2002_sylls_1st_freq_min_1.shape: (4477, 2)
+    : s2002_sylls_ANY_freq_min_1.shape: (7072, 2)
+    : ===========================================================================
+    :   SYLL      COUNT
+    : 0   po  212996121
+    : 1    o  159914508
+    : 2   za  127097688
+    : 3   wy  103188310
+    : 4    u  100003662
+    : 5   na   84445661
+    : ===========================================================================
+    :   SYLL      COUNT
+    : 0   po  246253294
+    : 1    w  240721554
+    : 2   na  235483957
+    : 3    o  211008068
+    : 4    i  205223831
+    : 5   do  168378078
+    : ===========================================================================
+    :   SYLL      COUNT
+    : 0  nie  330386171
+    : 1   na  328495489
+    : 2   po  287191469
+    : 3    w  240721554
+    : 4    o  212152294
+    : 5    i  208880586
+    :
+    :END:
+
+*** DONE Load =words= from MZF and JDO
+
+    #+BEGIN_SRC ipython :session *iPython* :eval yes :results raw drawer :exports both :shebang "#!/usr/bin/env ipython\n# -*- coding: utf-8 -*-\n\n" :tangle yes
+
+s2002_words_jdo = pd.read_excel( "./data_in/from_jdo_2019-03-22-001_words_val/words_val_fin_2019-03-22-001.xlsx", sheet_name="pop_Chosen_CLEANED", )
+s2002_words_mzf = pd.read_excel( "./data_in/from_mzf/verbs_nouns.xlsx",                                           sheet_name="All_data_all_criteria", )
+s2002_words_new = pd.read_excel( "./data_in/from_mzf/syll_mzf_data.xlsx",                                         sheet_name="ALL_DATA", )
+
+    #+END_SRC
+
+    #+RESULTS:
+    :RESULTS:
+    # Out[123]:
+    :END:
+
+** Proc 01: Drop duplicate rows
+*** DONE Drop dupes in =words= from ~jod~
+
+    #+BEGIN_SRC ipython :session *iPython* :eval yes :results raw drawer :exports both :shebang "#!/usr/bin/env ipython\n# -*- coding: utf-8 -*-\n\n" :tangle yes
+
+s2002_words_jdo_unique, s2002_words_jdo_dupes = df_dupes(
+    df_data = s2002_words_jdo,
+    subset  = "WORD_N", # consider all columns
+    keep    = 'first',
+    n_samp  = 12,
+    verbose = 2,
+)
+
+    #+END_SRC
+
+    #+RESULTS:
+    :RESULTS:
+    # Out[124]:
+    # output
+    : ===========================================================================
+    : Got: 160 words (rows).
+    : ===========================================================================
+    : KEEP: 159 words (rows).
+    : keep=first
+    : ---------------------------------------------------------------------------
+    : sample:
+    : ---------------------------------------------------------------------------
+    :       WORD_N GEN_N PoS_N  PoS_%_ANSWERS_N  LETTER_CNT_N  SYLL_CNT_N  FIRST_SYLL_CNT_N FIRST_SYLL SUFF_nouns  OLD_20_Wuggy_N  ...  Unnamed: 1014  Unnamed: 1015  Unnamed: 1016  Unnamed: 1017  Unnamed: 1018  Unnamed: 1019  WORD_N.30  GEN_N.30  PoS_N.30  PoS_%_ANSWERS_N.30
+    : 0    ciltrum     n  NOUN             93.8           7.0         2.0               NaN        cil      .*um$            2.65  ...            NaN            NaN            NaN            NaN            NaN            NaN        NaN       NaN       NaN                 NaN
+    : 1    celbrum     n  NOUN             90.0           7.0         2.0               NaN        cel      .*um$            2.80  ...            NaN            NaN            NaN            NaN            NaN            NaN        NaN       NaN       NaN                 NaN
+    : 2     chósło     n  NOUN             85.0           6.0         2.0               NaN        chó      .*ło$            2.75  ...            NaN            NaN            NaN            NaN            NaN            NaN        NaN       NaN       NaN                 NaN
+    : 3    celznum     n  NOUN             82.4           7.0         2.0               NaN        cel      .*um$            2.95  ...            NaN            NaN            NaN            NaN            NaN            NaN        NaN       NaN       NaN                 NaN
+    : 4    celfrum     n  NOUN             95.2           7.0         2.0               NaN        cel      .*um$            2.80  ...            NaN            NaN            NaN            NaN            NaN            NaN        NaN       NaN       NaN                 NaN
+    : 5    celchum     n  NOUN             95.2           7.0         2.0               NaN        cel      .*um$            2.80  ...            NaN            NaN            NaN            NaN            NaN            NaN        NaN       NaN       NaN                 NaN
+    : 6    celtkum     n  NOUN             80.0           7.0         2.0               NaN       celt      .*um$            2.90  ...            NaN            NaN            NaN            NaN            NaN            NaN        NaN       NaN       NaN                 NaN
+    : 7    celkrum     n  NOUN             80.8           7.0         2.0               NaN        cel      .*um$            2.90  ...            NaN            NaN            NaN            NaN            NaN            NaN        NaN       NaN       NaN                 NaN
+    : 8   tłowiwko     n  NOUN             88.5           8.0         3.0               NaN        tło      .*ko$            2.95  ...            NaN            NaN            NaN            NaN            NaN            NaN        NaN       NaN       NaN                 NaN
+    : 9   gnowiwko     n  NOUN            100.0           8.0         3.0               NaN        gno      .*ko$            3.00  ...            NaN            NaN            NaN            NaN            NaN            NaN        NaN       NaN       NaN                 NaN
+    : 10  młowiwko     n  NOUN             89.5           8.0         3.0               NaN        mło      .*ko$            2.90  ...            NaN            NaN            NaN            NaN            NaN            NaN        NaN       NaN       NaN                 NaN
+    : 11   łudioro     n  NOUN             84.2           7.0         3.0               NaN         łu      .*ro$            2.90  ...            NaN            NaN            NaN            NaN            NaN            NaN        NaN       NaN       NaN                 NaN
+    :
+    : [12 rows x 1024 columns]
+    : ===========================================================================
+    : DROP: 1 words (rows).
+    : keep=first
+    : ---------------------------------------------------------------------------
+    : sample:
+    : ---------------------------------------------------------------------------
+    :     WORD_N GEN_N PoS_N  PoS_%_ANSWERS_N  LETTER_CNT_N  SYLL_CNT_N  FIRST_SYLL_CNT_N FIRST_SYLL SUFF_nouns  OLD_20_Wuggy_N  ...  Unnamed: 1014  Unnamed: 1015  Unnamed: 1016  Unnamed: 1017  Unnamed: 1018  Unnamed: 1019  WORD_N.30  GEN_N.30  PoS_N.30  PoS_%_ANSWERS_N.30
+    : 159    NaN   NaN   NaN              NaN           NaN         NaN               NaN        NaN        NaN             NaN  ...            NaN            NaN            NaN            NaN            NaN            NaN        NaN       NaN       NaN                 NaN
+    :
+    : [1 rows x 1024 columns]
+    :
+    :END:
+
+*** DONE Drop dupes in =words= from ~mzf~
+
+    #+BEGIN_SRC ipython :session *iPython* :eval yes :results raw drawer :exports both :shebang "#!/usr/bin/env ipython\n# -*- coding: utf-8 -*-\n\n" :tangle yes
+
+s2002_words_mzf_unique, s2002_words_mzf_dupes = df_dupes(
+    df_data = s2002_words_mzf,
+    subset  = "WORD_V", # consider all columns
+    keep    = 'first',
+    n_samp  = 12,
+    verbose = 2,
+)
+
+    #+END_SRC
+
+    #+RESULTS:
+    :RESULTS:
+    # Out[125]:
+    # output
+    : ===========================================================================
+    : Got: 162 words (rows).
+    : ===========================================================================
+    : KEEP: 162 words (rows).
+    : keep=first
+    : ---------------------------------------------------------------------------
+    : sample:
+    : ---------------------------------------------------------------------------
+    :       WORD_V rodzaj PoS_V  PoS_%_ANSWERS_V  LETTER_CNT_V  SYLL_CNT_V  FIRST_SYLL_CNT_V FIRST_SYLLL SUFF_verbs  OLD_20_Wuggy_V  OLD20_JN_V     AVG_V      SD_V  T_TEST_3_V     P_VALUE_V   CONFI_V  Unnamed: 16  Acceptance%  Acceptance_mean
+    : 0    ciltrum      n  NOUN             93.8             7           2               NaN         cil      .*um$            2.65    2.333333  1.500000  0.816497   -7.348469  2.411835e-06 -1.935080    -1.064920            1                1
+    : 1    celbrum      n  NOUN             90.0             7           2               NaN         cel      .*um$            2.80    2.428571  1.800000  0.894427   -6.000000  8.979235e-06 -1.618605    -0.781395            1                1
+    : 2     chósło      n  NOUN             85.0             6           2               NaN         chó      .*ło$            2.75    2.428571  2.400000  1.142481   -2.348644  2.981502e-02 -1.134698    -0.065302            1                1
+    : 3    celznum      n  NOUN             82.4             7           2               NaN         cel      .*um$            2.95    2.571429  1.647059  0.701888   -7.947590  6.038450e-07 -1.713819    -0.992064            1                1
+    : 4    celfrum      n  NOUN             95.2             7           2               NaN         cel      .*um$            2.80    2.619048  1.761905  0.943650   -6.012465  7.048282e-06 -1.667640    -0.808551            1                1
+    : 5    celchum      n  NOUN             95.2             7           2               NaN         cel      .*um$            2.80    2.666667  1.761905  0.943650   -6.012465  7.048282e-06 -1.667640    -0.808551            1                1
+    : 6    celtkum      n  NOUN             80.0             7           2               NaN        celt      .*um$            2.90    2.666667  1.900000  1.119210   -4.395376  3.109725e-04 -1.623807    -0.576193            1                1
+    : 7    celkrum      n  NOUN             80.8             7           2               NaN         cel      .*um$            2.90    2.714286  1.961538  1.076319   -4.919673  4.588510e-05 -1.473196    -0.603727            1                1
+    : 8   tłowiwko      n  NOUN             88.5             8           3               NaN         tło      .*ko$            2.95    2.714286  2.230769  1.031802   -3.801430  8.235553e-04 -1.185985    -0.352477            1                1
+    : 9   gnowiwko      n  NOUN            100.0             8           3               NaN         gno      .*ko$            3.00    2.761905  2.421053  1.017393   -2.480432  2.323299e-02 -1.069315    -0.088580            1                1
+    : 10  młowiwko      n  NOUN             89.5             8           3               NaN         mło      .*ko$            2.90    2.761905  2.421053  1.169795   -2.157277  4.474830e-02 -1.142771    -0.015124            1                1
+    : 11   łudioro      n  NOUN             84.2             7           3               NaN          łu      .*ro$            2.90    2.809524  1.421053  0.606977  -11.338934  1.249517e-09 -1.871501    -1.286394            1                1
+    : ===========================================================================
+    : DROP: 0 words (rows).
+    : keep=first
+    : ---------------------------------------------------------------------------
+    : sample:
+    : ---------------------------------------------------------------------------
+    : Empty DataFrame
+    : Columns: [WORD_V, rodzaj, PoS_V, PoS_%_ANSWERS_V, LETTER_CNT_V, SYLL_CNT_V, FIRST_SYLL_CNT_V, FIRST_SYLLL, SUFF_verbs, OLD_20_Wuggy_V, OLD20_JN_V, AVG_V, SD_V, T_TEST_3_V, P_VALUE_V, CONFI_V, Unnamed: 16, Acceptance%, Acceptance_mean]
+    : Index: []
+    :
+    :END:
+
+*** DONE Drop dupes in =words= from ~new~
+
+    #+BEGIN_SRC ipython :session *iPython* :eval yes :results raw drawer :exports both :shebang "#!/usr/bin/env ipython\n# -*- coding: utf-8 -*-\n\n" :tangle yes
+
+s2002_words_new_unique, s2002_words_new_dupes = df_dupes(
+    df_data = s2002_words_new,
+    subset  = "WORD_V", # consider all columns
+    keep    = 'first',
+    n_samp  = 12,
+    verbose = 2,
+)
+
+    #+END_SRC
+
+    #+RESULTS:
+    :RESULTS:
+    # Out[126]:
+    # output
+    : ===========================================================================
+    : Got: 158 words (rows).
+    : ===========================================================================
+    : KEEP: 158 words (rows).
+    : keep=first
+    : ---------------------------------------------------------------------------
+    : sample:
+    : ---------------------------------------------------------------------------
+    :     Unnamed: 0    WORD_V rodzaj PoS_V  PoS_%_ANSWERS_V  LETTER_CNT_V  SYLL_CNT_V  FIRST_SYLL_CNT_V FIRST_SYLLL SUFF_verbs  ...     AVG_V      SD_V  T_TEST_3_V     P_VALUE_V   CONFI_V  Unnamed: 16  Acceptance%  Acceptance_mean  SYLL      COUNT
+    : 0            0   ciltrum      n  NOUN             93.8             7           2               NaN         cil      .*um$  ...  1.500000  0.816497   -7.348469  2.411835e-06 -1.935080    -1.064920            1                1   NaN        NaN
+    : 1            1   celbrum      n  NOUN             90.0             7           2               NaN         cel      .*um$  ...  1.800000  0.894427   -6.000000  8.979235e-06 -1.618605    -0.781395            1                1   cel    50931.0
+    : 2            2    chósło      n  NOUN             85.0             6           2               NaN         chó      .*ło$  ...  2.400000  1.142481   -2.348644  2.981502e-02 -1.134698    -0.065302            1                1   chó    55278.0
+    : 3            3   celznum      n  NOUN             82.4             7           2               NaN         cel      .*um$  ...  1.647059  0.701888   -7.947590  6.038450e-07 -1.713819    -0.992064            1                1   cel    50931.0
+    : 4            4   celfrum      n  NOUN             95.2             7           2               NaN         cel      .*um$  ...  1.761905  0.943650   -6.012465  7.048282e-06 -1.667640    -0.808551            1                1   cel    50931.0
+    : 5            5   celchum      n  NOUN             95.2             7           2               NaN         cel      .*um$  ...  1.761905  0.943650   -6.012465  7.048282e-06 -1.667640    -0.808551            1                1   cel    50931.0
+    : 6            6   celtkum      n  NOUN             80.0             7           2               NaN        celt      .*um$  ...  1.900000  1.119210   -4.395376  3.109725e-04 -1.623807    -0.576193            1                1   NaN        NaN
+    : 7            7   celkrum      n  NOUN             80.8             7           2               NaN         cel      .*um$  ...  1.961538  1.076319   -4.919673  4.588510e-05 -1.473196    -0.603727            1                1   cel    50931.0
+    : 8            8  tłowiwko      n  NOUN             88.5             8           3               NaN         tło      .*ko$  ...  2.230769  1.031802   -3.801430  8.235553e-04 -1.185985    -0.352477            1                1   NaN        NaN
+    : 9            9  gnowiwko      n  NOUN            100.0             8           3               NaN         gno      .*ko$  ...  2.421053  1.017393   -2.480432  2.323299e-02 -1.069315    -0.088580            1                1   NaN        NaN
+    : 10          10  młowiwko      n  NOUN             89.5             8           3               NaN         mło      .*ko$  ...  2.421053  1.169795   -2.157277  4.474830e-02 -1.142771    -0.015124            1                1   mło  4074290.0
+    : 11          11   łudioro      n  NOUN             84.2             7           3               NaN          łu      .*ro$  ...  1.421053  0.606977  -11.338934  1.249517e-09 -1.871501    -1.286394            1                1    łu   468219.0
+    :
+    : [12 rows x 22 columns]
+    : ===========================================================================
+    : DROP: 0 words (rows).
+    : keep=first
+    : ---------------------------------------------------------------------------
+    : sample:
+    : ---------------------------------------------------------------------------
+    : Empty DataFrame
+    : Columns: [Unnamed: 0, WORD_V, rodzaj, PoS_V, PoS_%_ANSWERS_V, LETTER_CNT_V, SYLL_CNT_V, FIRST_SYLL_CNT_V, FIRST_SYLLL, SUFF_verbs, OLD_20_Wuggy_V, OLD20_JN_V, AVG_V, SD_V, T_TEST_3_V, P_VALUE_V, CONFI_V, Unnamed: 16, Acceptance%, Acceptance_mean, SYLL, COUNT]
+    : Index: []
+    :
+    : [0 rows x 22 columns]
+    :
+    :END:
+
+** Proc 02: Checkups
+*** DOIN Check syllabe
+
+    #+BEGIN_SRC ipython :session *iPython* :eval yes :results raw drawer :exports both :shebang "#!/usr/bin/env ipython\n# -*- coding: utf-8 -*-\n\n" :tangle yes
+
+tmp_syll = "sy"
+
+print( s2002_sylls_1st_freq_min_2[ s2002_sylls_1st_freq_min_2[ "SYLL" ] == tmp_syll ] )
+print( s2002_sylls_1st_freq_min_1[ s2002_sylls_1st_freq_min_1[ "SYLL" ] == tmp_syll ] )
+print( s2002_sylls_ANY_freq_min_1[ s2002_sylls_ANY_freq_min_1[ "SYLL" ] == tmp_syll ] )
+
+    #+END_SRC
+
+    #+RESULTS:
+    :RESULTS:
+    # Out[148]:
+    # output
+    :     SYLL    COUNT
+    : 127   sy  6274215
+    :     SYLL    COUNT
+    : 164   sy  6274215
+    :     SYLL     COUNT
+    : 135   sy  18698335
+    :
+    :END:
+
+*** DONE Checkup =s2002_sylls_1st_freq_min_2=
+
+    #+BEGIN_SRC ipython :session *iPython* :eval yes :results raw drawer :exports both :shebang "#!/usr/bin/env ipython\n# -*- coding: utf-8 -*-\n\n" :tangle yes
+
+df_list = [  s2002_sylls_1st_freq_min_2,  ]
+df_info = [ "s2002_sylls_1st_freq_min_2", ]
+df_head = 12
+df_tail = 12
+
+df_checkup_bulk( df_list=df_list, df_info=df_info, df_head=df_head, df_tail=df_tail, )
+
+    #+END_SRC
+
+    #+RESULTS:
+    :RESULTS:
+    # Out[127]:
+    # output
+    : ===========================================================================
+    : s2002_sylls_1st_freq_min_2
+    : ===========================================================================
+    : idx count: 2178
+    : row count: 2  ['SYLL', 'COUNT']
+    : ---------------------------------------------------------------------------
+    :    SYLL      COUNT
+    : 0    po  212996121
+    : 1     o  159914508
+    : 2    za  127097688
+    : 3    wy  103188310
+    : 4     u  100003662
+    : 5    na   84445661
+    : 6    do   74531316
+    : 7     a   68127822
+    : 8    mo   62894173
+    : 9   pro   52193717
+    : 10  któ   51542820
+    : 11   te   51458465
+    : ---------------------------------------------------------------------------
+    :         SYLL  COUNT
+    : 2166   chlew  11613
+    : 2167     bec  11607
+    : 2168    gwoź  11587
+    : 2169     red  11548
+    : 2170   schow  11544
+    : 2171     łez  11536
+    : 2172     pha  11536
+    : 2173    ptac  11532
+    : 2174    spóź  11531
+    : 2175  szczaw  11508
+    : 2176     żwi  11478
+    : 2177   krost  11460
+    :
+    :END:
+
+*** DONE Checkup =s2002_sylls_1st_freq_min_1=
+
+    #+BEGIN_SRC ipython :session *iPython* :eval yes :results raw drawer :exports both :shebang "#!/usr/bin/env ipython\n# -*- coding: utf-8 -*-\n\n" :tangle yes
+
+df_list = [  s2002_sylls_1st_freq_min_1,  ]
+df_info = [ "s2002_sylls_1st_freq_min_1", ]
+df_head = 12
+df_tail = 12
+
+df_checkup_bulk( df_list=df_list, df_info=df_info, df_head=df_head, df_tail=df_tail, )
+
+    #+END_SRC
+
+    #+RESULTS:
+    :RESULTS:
+    # Out[128]:
+    # output
+    : ===========================================================================
+    : s2002_sylls_1st_freq_min_1
+    : ===========================================================================
+    : idx count: 4477
+    : row count: 2  ['SYLL', 'COUNT']
+    : ---------------------------------------------------------------------------
+    :    SYLL      COUNT
+    : 0    po  246253294
+    : 1     w  240721554
+    : 2    na  235483957
+    : 3     o  211008068
+    : 4     i  205223831
+    : 5    do  168378078
+    : 6   nie  166322355
+    : 7    za  155246607
+    : 8     z  133291550
+    : 9     a  125362095
+    : 10  się  121537472
+    : 11   to  110549382
+    : ---------------------------------------------------------------------------
+    :         SYLL  COUNT
+    : 4465     opp  11512
+    : 4466     ppc  11508
+    : 4467  szczaw  11508
+    : 4468    bral  11504
+    : 4469      hg  11501
+    : 4470     psv  11494
+    : 4471    xxii  11492
+    : 4472     żwi  11478
+    : 4473   grześ  11477
+    : 4474     ceł  11462
+    : 4475   krost  11460
+    : 4476    stój  11459
+    :
+    :END:
+
+*** DONE Checkup =s2002_sylls_ANY_freq_min_1=
+
+    #+BEGIN_SRC ipython :session *iPython* :eval yes :results raw drawer :exports both :shebang "#!/usr/bin/env ipython\n# -*- coding: utf-8 -*-\n\n" :tangle yes
+
+df_list = [  s2002_sylls_ANY_freq_min_1,  ]
+df_info = [ "s2002_sylls_ANY_freq_min_1", ]
+df_head = 12
+df_tail = 12
+
+df_checkup_bulk( df_list=df_list, df_info=df_info, df_head=df_head, df_tail=df_tail, )
+
+    #+END_SRC
+
+    #+RESULTS:
+    :RESULTS:
+    # Out[129]:
+    # output
+    : ===========================================================================
+    : s2002_sylls_ANY_freq_min_1
+    : ===========================================================================
+    : idx count: 7072
+    : row count: 2  ['SYLL', 'COUNT']
+    : ---------------------------------------------------------------------------
+    :    SYLL      COUNT
+    : 0   nie  330386171
+    : 1    na  328495489
+    : 2    po  287191469
+    : 3     w  240721554
+    : 4     o  212152294
+    : 5     i  208880586
+    : 6    do  202590909
+    : 7    za  183476380
+    : 8    to  165489968
+    : 9    go  164785362
+    : 10   ko  150752001
+    : 11    z  133291550
+    : ---------------------------------------------------------------------------
+    :        SYLL  COUNT
+    : 7060   bral  11504
+    : 7061     hg  11501
+    : 7062    eko  11497
+    : 7063    psv  11494
+    : 7064   xxii  11492
+    : 7065    żwi  11478
+    : 7066  grześ  11477
+    : 7067   riel  11475
+    : 7068  iunkt  11473
+    : 7069    ceł  11462
+    : 7070  krost  11460
+    : 7071    lce  11454
+    :
+    :END:
+
+*** DONE Checkup =words= from ~jod~
+
+    #+BEGIN_SRC ipython :session *iPython* :eval yes :results raw drawer :exports both :shebang "#!/usr/bin/env ipython\n# -*- coding: utf-8 -*-\n\n" :tangle yes
+
+df_list = [  s2002_words_jdo_unique,  ]
+df_info = [ "s2002_words_jdo_unique", ]
+df_head = 12
+df_tail = 12
+
+df_checkup_bulk( df_list=df_list, df_info=df_info, df_head=df_head, df_tail=df_tail, )
+    
+    #+END_SRC
+
+    #+RESULTS:
+    :RESULTS:
+    # Out[130]:
+    # output
+    : ===========================================================================
+    : s2002_words_jdo_unique
+    : ===========================================================================
+    : idx count: 159
+    : row count: 1024
+    : ---------------------------------------------------------------------------
+    :       WORD_N GEN_N PoS_N  PoS_%_ANSWERS_N  LETTER_CNT_N  SYLL_CNT_N  FIRST_SYLL_CNT_N FIRST_SYLL SUFF_nouns  OLD_20_Wuggy_N  ...  Unnamed: 1014  Unnamed: 1015  Unnamed: 1016  Unnamed: 1017  Unnamed: 1018  Unnamed: 1019  WORD_N.30  GEN_N.30  PoS_N.30  PoS_%_ANSWERS_N.30
+    : 0    ciltrum     n  NOUN             93.8           7.0         2.0               NaN        cil      .*um$            2.65  ...            NaN            NaN            NaN            NaN            NaN            NaN        NaN       NaN       NaN                 NaN
+    : 1    celbrum     n  NOUN             90.0           7.0         2.0               NaN        cel      .*um$            2.80  ...            NaN            NaN            NaN            NaN            NaN            NaN        NaN       NaN       NaN                 NaN
+    : 2     chósło     n  NOUN             85.0           6.0         2.0               NaN        chó      .*ło$            2.75  ...            NaN            NaN            NaN            NaN            NaN            NaN        NaN       NaN       NaN                 NaN
+    : 3    celznum     n  NOUN             82.4           7.0         2.0               NaN        cel      .*um$            2.95  ...            NaN            NaN            NaN            NaN            NaN            NaN        NaN       NaN       NaN                 NaN
+    : 4    celfrum     n  NOUN             95.2           7.0         2.0               NaN        cel      .*um$            2.80  ...            NaN            NaN            NaN            NaN            NaN            NaN        NaN       NaN       NaN                 NaN
+    : 5    celchum     n  NOUN             95.2           7.0         2.0               NaN        cel      .*um$            2.80  ...            NaN            NaN            NaN            NaN            NaN            NaN        NaN       NaN       NaN                 NaN
+    : 6    celtkum     n  NOUN             80.0           7.0         2.0               NaN       celt      .*um$            2.90  ...            NaN            NaN            NaN            NaN            NaN            NaN        NaN       NaN       NaN                 NaN
+    : 7    celkrum     n  NOUN             80.8           7.0         2.0               NaN        cel      .*um$            2.90  ...            NaN            NaN            NaN            NaN            NaN            NaN        NaN       NaN       NaN                 NaN
+    : 8   tłowiwko     n  NOUN             88.5           8.0         3.0               NaN        tło      .*ko$            2.95  ...            NaN            NaN            NaN            NaN            NaN            NaN        NaN       NaN       NaN                 NaN
+    : 9   gnowiwko     n  NOUN            100.0           8.0         3.0               NaN        gno      .*ko$            3.00  ...            NaN            NaN            NaN            NaN            NaN            NaN        NaN       NaN       NaN                 NaN
+    : 10  młowiwko     n  NOUN             89.5           8.0         3.0               NaN        mło      .*ko$            2.90  ...            NaN            NaN            NaN            NaN            NaN            NaN        NaN       NaN       NaN                 NaN
+    : 11   łudioro     n  NOUN             84.2           7.0         3.0               NaN         łu      .*ro$            2.90  ...            NaN            NaN            NaN            NaN            NaN            NaN        NaN       NaN       NaN                 NaN
+    :
+    : [12 rows x 1024 columns]
+    : ---------------------------------------------------------------------------
+    :        WORD_N GEN_N PoS_N  PoS_%_ANSWERS_N  LETTER_CNT_N  SYLL_CNT_N  FIRST_SYLL_CNT_N FIRST_SYLL SUFF_nouns  OLD_20_Wuggy_N  ...  Unnamed: 1014  Unnamed: 1015  Unnamed: 1016  Unnamed: 1017  Unnamed: 1018  Unnamed: 1019  WORD_N.30  GEN_N.30  PoS_N.30  PoS_%_ANSWERS_N.30
+    : 147   osorsać   NaN  VERB       100.000000           7.0         3.0               NaN          o      .*ać$            2.95  ...            NaN            NaN            NaN            NaN            NaN            NaN        NaN       NaN       NaN                 NaN
+    : 148  ocpiatać   NaN  VERB       100.000000           8.0         2.0               NaN      ocpia      .*ać$            2.80  ...            NaN            NaN            NaN            NaN            NaN            NaN        NaN       NaN       NaN                 NaN
+    : 149  ocpiadać   NaN  VERB       100.000000           8.0         2.0               NaN      ocpia      .*ać$            2.80  ...            NaN            NaN            NaN            NaN            NaN            NaN        NaN       NaN       NaN                 NaN
+    : 150  zapumkić   NaN  VERB        89.500000           8.0         3.0               NaN         za      .*ić$            2.90  ...            NaN            NaN            NaN            NaN            NaN            NaN        NaN       NaN       NaN                 NaN
+    : 151   gżąchyć   NaN  VERB        90.909091           7.0         2.0               NaN        gżą      .*yć$            3.00  ...            NaN            NaN            NaN            NaN            NaN            NaN        NaN       NaN       NaN                 NaN
+    : 152  ocpiakać   NaN  VERB       100.000000           8.0         2.0               NaN      ocpia      .*ać$            2.85  ...            NaN            NaN            NaN            NaN            NaN            NaN        NaN       NaN       NaN                 NaN
+    : 153  pozlodić   NaN  VERB       100.000000           8.0         3.0               NaN         po      .*ić$            2.80  ...            NaN            NaN            NaN            NaN            NaN            NaN        NaN       NaN       NaN                 NaN
+    : 154  onzietać   NaN  VERB       100.000000           8.0         3.0               NaN         on      .*ać$            2.90  ...            NaN            NaN            NaN            NaN            NaN            NaN        NaN       NaN       NaN                 NaN
+    : 155    cyśnyć   NaN  VERB        81.818182           6.0         2.0               NaN         cy      .*yć$            2.85  ...            NaN            NaN            NaN            NaN            NaN            NaN        NaN       NaN       NaN                 NaN
+    : 156   lżąchyć   NaN  VERB       100.000000           7.0         2.0               NaN        lżą      .*yć$            2.90  ...            NaN            NaN            NaN            NaN            NaN            NaN        NaN       NaN       NaN                 NaN
+    : 157    kyctić   NaN  VERB        90.909091           6.0         2.0               NaN        kyc      .*ić$            2.90  ...            NaN            NaN            NaN            NaN            NaN            NaN        NaN       NaN       NaN                 NaN
+    : 158       NaN   NaN   NaN              NaN           NaN         NaN               NaN        NaN        NaN             NaN  ...            NaN            NaN            NaN            NaN            NaN            NaN        NaN       NaN       NaN                 NaN
+    :
+    : [12 rows x 1024 columns]
+    :
+    :END:
+
+*** DONE Checkup =words= from ~mzf~
+
+    #+BEGIN_SRC ipython :session *iPython* :eval yes :results raw drawer :exports both :shebang "#!/usr/bin/env ipython\n# -*- coding: utf-8 -*-\n\n" :tangle yes
+
+df_list = [  s2002_words_mzf_unique,  ]
+df_info = [ "s2002_words_mzf_unique", ]
+df_head = 12
+df_tail = 12
+
+df_checkup_bulk( df_list=df_list, df_info=df_info, df_head=df_head, df_tail=df_tail, )
+    
+    #+END_SRC
+
+    #+RESULTS:
+    :RESULTS:
+    # Out[131]:
+    # output
+    : ===========================================================================
+    : s2002_words_mzf_unique
+    : ===========================================================================
+    : idx count: 162
+    : row count: 19  ['WORD_V', 'rodzaj', 'PoS_V', 'PoS_%_ANSWERS_V', 'LETTER_CNT_V', 'SYLL_CNT_V', 'FIRST_SYLL_CNT_V', 'FIRST_SYLLL', 'SUFF_verbs', 'OLD_20_Wuggy_V', 'OLD20_JN_V', 'AVG_V', 'SD_V', 'T_TEST_3_V', 'P_VALUE_V', 'CONFI_V', 'Unnamed: 16', 'Acceptance%', 'Acceptance_mean']
+    : ---------------------------------------------------------------------------
+    :       WORD_V rodzaj PoS_V  PoS_%_ANSWERS_V  LETTER_CNT_V  SYLL_CNT_V  FIRST_SYLL_CNT_V FIRST_SYLLL SUFF_verbs  OLD_20_Wuggy_V  OLD20_JN_V     AVG_V      SD_V  T_TEST_3_V     P_VALUE_V   CONFI_V  Unnamed: 16  Acceptance%  Acceptance_mean
+    : 0    ciltrum      n  NOUN             93.8             7           2               NaN         cil      .*um$            2.65    2.333333  1.500000  0.816497   -7.348469  2.411835e-06 -1.935080    -1.064920            1                1
+    : 1    celbrum      n  NOUN             90.0             7           2               NaN         cel      .*um$            2.80    2.428571  1.800000  0.894427   -6.000000  8.979235e-06 -1.618605    -0.781395            1                1
+    : 2     chósło      n  NOUN             85.0             6           2               NaN         chó      .*ło$            2.75    2.428571  2.400000  1.142481   -2.348644  2.981502e-02 -1.134698    -0.065302            1                1
+    : 3    celznum      n  NOUN             82.4             7           2               NaN         cel      .*um$            2.95    2.571429  1.647059  0.701888   -7.947590  6.038450e-07 -1.713819    -0.992064            1                1
+    : 4    celfrum      n  NOUN             95.2             7           2               NaN         cel      .*um$            2.80    2.619048  1.761905  0.943650   -6.012465  7.048282e-06 -1.667640    -0.808551            1                1
+    : 5    celchum      n  NOUN             95.2             7           2               NaN         cel      .*um$            2.80    2.666667  1.761905  0.943650   -6.012465  7.048282e-06 -1.667640    -0.808551            1                1
+    : 6    celtkum      n  NOUN             80.0             7           2               NaN        celt      .*um$            2.90    2.666667  1.900000  1.119210   -4.395376  3.109725e-04 -1.623807    -0.576193            1                1
+    : 7    celkrum      n  NOUN             80.8             7           2               NaN         cel      .*um$            2.90    2.714286  1.961538  1.076319   -4.919673  4.588510e-05 -1.473196    -0.603727            1                1
+    : 8   tłowiwko      n  NOUN             88.5             8           3               NaN         tło      .*ko$            2.95    2.714286  2.230769  1.031802   -3.801430  8.235553e-04 -1.185985    -0.352477            1                1
+    : 9   gnowiwko      n  NOUN            100.0             8           3               NaN         gno      .*ko$            3.00    2.761905  2.421053  1.017393   -2.480432  2.323299e-02 -1.069315    -0.088580            1                1
+    : 10  młowiwko      n  NOUN             89.5             8           3               NaN         mło      .*ko$            2.90    2.761905  2.421053  1.169795   -2.157277  4.474830e-02 -1.142771    -0.015124            1                1
+    : 11   łudioro      n  NOUN             84.2             7           3               NaN          łu      .*ro$            2.90    2.809524  1.421053  0.606977  -11.338934  1.249517e-09 -1.871501    -1.286394            1                1
+    : ---------------------------------------------------------------------------
+    :        WORD_V rodzaj PoS_V  PoS_%_ANSWERS_V  LETTER_CNT_V  SYLL_CNT_V  FIRST_SYLL_CNT_V FIRST_SYLLL SUFF_verbs  OLD_20_Wuggy_V  OLD20_JN_V     AVG_V      SD_V  T_TEST_3_V     P_VALUE_V   CONFI_V  Unnamed: 16  Acceptance%  Acceptance_mean
+    : 150  posyścać    NaN  VERB       100.000000             8           4               NaN          po      .*ać$            2.85    2.714286  2.052632  0.970320   -4.255796  4.755068e-04 -1.415048    -0.479689            1                1
+    : 151   osorsać    NaN  VERB       100.000000             7           3               NaN           o      .*ać$            2.95    2.714286  2.473684  1.020263   -2.248595  3.730029e-02 -1.018067    -0.034565            1                1
+    : 152  ocpiatać    NaN  VERB       100.000000             8           2               NaN       ocpia      .*ać$            2.80    2.714286  2.000000  0.942809   -4.623311  2.111495e-04 -1.454419    -0.545581            1                1
+    : 153  ocpiadać    NaN  VERB       100.000000             8           2               NaN       ocpia      .*ać$            2.80    2.714286  2.315789  1.002920   -2.973722  8.136982e-03 -1.167602    -0.200819            1                1
+    : 154  zapumkić    NaN  VERB        89.500000             8           3               NaN          za      .*ić$            2.90    2.714286  2.473684  1.073334   -2.137411  4.653922e-02 -1.043646    -0.008985            1                1
+    : 155   gżąchyć    NaN  VERB        90.909091             7           2               NaN         gżą      .*yć$            3.00    2.761905  2.181818  0.873863   -3.105295  1.114965e-02 -1.405251    -0.231113            1                1
+    : 156  ocpiakać    NaN  VERB       100.000000             8           2               NaN       ocpia      .*ać$            2.85    2.761905  2.090909  0.831209   -3.627381  4.632631e-03 -1.467505    -0.350677            1                1
+    : 157  pozlodić    NaN  VERB       100.000000             8           3               NaN          po      .*ić$            2.80    2.761905  1.909091  0.700649   -5.163978  4.227812e-04 -1.561612    -0.620207            1                1
+    : 158  onzietać    NaN  VERB       100.000000             8           3               NaN          on      .*ać$            2.90    2.761905  2.363636  0.924416   -2.283148  4.554128e-02 -1.257395    -0.015332            1                1
+    : 159    cyśnyć    NaN  VERB        81.818182             6           2               NaN          cy      .*yć$            2.85    2.761905  2.272727  0.904534   -2.666667  2.362735e-02 -1.334947    -0.119598            1                1
+    : 160   lżąchyć    NaN  VERB       100.000000             7           2               NaN         lżą      .*yć$            2.90    2.761905  2.090909  0.831209   -3.627381  4.632631e-03 -1.467505    -0.350677            1                1
+    : 161    kyctić    NaN  VERB        90.909091             6           2               NaN         kyc      .*ić$            2.90    2.761905  1.363636  0.504525  -10.757057  8.111368e-07 -1.975308    -1.297419            1                1
+    :
+    :END:
+
+*** DONE Checkup =words= from ~new~
+
+    #+BEGIN_SRC ipython :session *iPython* :eval yes :results raw drawer :exports both :shebang "#!/usr/bin/env ipython\n# -*- coding: utf-8 -*-\n\n" :tangle yes
+
+df_list = [  s2002_words_new_unique,  ]
+df_info = [ "s2002_words_new_unique", ]
+df_head = 12
+df_tail = 12
+
+df_checkup_bulk( df_list=df_list, df_info=df_info, df_head=df_head, df_tail=df_tail, )
+
+    #+END_SRC
+
+    #+RESULTS:
+    :RESULTS:
+    # Out[132]:
+    # output
+    : ===========================================================================
+    : s2002_words_new_unique
+    : ===========================================================================
+    : idx count: 158
+    : row count: 22  ['Unnamed: 0', 'WORD_V', 'rodzaj', 'PoS_V', 'PoS_%_ANSWERS_V', 'LETTER_CNT_V', 'SYLL_CNT_V', 'FIRST_SYLL_CNT_V', 'FIRST_SYLLL', 'SUFF_verbs', 'OLD_20_Wuggy_V', 'OLD20_JN_V', 'AVG_V', 'SD_V', 'T_TEST_3_V', 'P_VALUE_V', 'CONFI_V', 'Unnamed: 16', 'Acceptance%', 'Acceptance_mean', 'SYLL', 'COUNT']
+    : ---------------------------------------------------------------------------
+    :     Unnamed: 0    WORD_V rodzaj PoS_V  PoS_%_ANSWERS_V  LETTER_CNT_V  SYLL_CNT_V  FIRST_SYLL_CNT_V FIRST_SYLLL SUFF_verbs  ...     AVG_V      SD_V  T_TEST_3_V     P_VALUE_V   CONFI_V  Unnamed: 16  Acceptance%  Acceptance_mean  SYLL      COUNT
+    : 0            0   ciltrum      n  NOUN             93.8             7           2               NaN         cil      .*um$  ...  1.500000  0.816497   -7.348469  2.411835e-06 -1.935080    -1.064920            1                1   NaN        NaN
+    : 1            1   celbrum      n  NOUN             90.0             7           2               NaN         cel      .*um$  ...  1.800000  0.894427   -6.000000  8.979235e-06 -1.618605    -0.781395            1                1   cel    50931.0
+    : 2            2    chósło      n  NOUN             85.0             6           2               NaN         chó      .*ło$  ...  2.400000  1.142481   -2.348644  2.981502e-02 -1.134698    -0.065302            1                1   chó    55278.0
+    : 3            3   celznum      n  NOUN             82.4             7           2               NaN         cel      .*um$  ...  1.647059  0.701888   -7.947590  6.038450e-07 -1.713819    -0.992064            1                1   cel    50931.0
+    : 4            4   celfrum      n  NOUN             95.2             7           2               NaN         cel      .*um$  ...  1.761905  0.943650   -6.012465  7.048282e-06 -1.667640    -0.808551            1                1   cel    50931.0
+    : 5            5   celchum      n  NOUN             95.2             7           2               NaN         cel      .*um$  ...  1.761905  0.943650   -6.012465  7.048282e-06 -1.667640    -0.808551            1                1   cel    50931.0
+    : 6            6   celtkum      n  NOUN             80.0             7           2               NaN        celt      .*um$  ...  1.900000  1.119210   -4.395376  3.109725e-04 -1.623807    -0.576193            1                1   NaN        NaN
+    : 7            7   celkrum      n  NOUN             80.8             7           2               NaN         cel      .*um$  ...  1.961538  1.076319   -4.919673  4.588510e-05 -1.473196    -0.603727            1                1   cel    50931.0
+    : 8            8  tłowiwko      n  NOUN             88.5             8           3               NaN         tło      .*ko$  ...  2.230769  1.031802   -3.801430  8.235553e-04 -1.185985    -0.352477            1                1   NaN        NaN
+    : 9            9  gnowiwko      n  NOUN            100.0             8           3               NaN         gno      .*ko$  ...  2.421053  1.017393   -2.480432  2.323299e-02 -1.069315    -0.088580            1                1   NaN        NaN
+    : 10          10  młowiwko      n  NOUN             89.5             8           3               NaN         mło      .*ko$  ...  2.421053  1.169795   -2.157277  4.474830e-02 -1.142771    -0.015124            1                1   mło  4074290.0
+    : 11          11   łudioro      n  NOUN             84.2             7           3               NaN          łu      .*ro$  ...  1.421053  0.606977  -11.338934  1.249517e-09 -1.871501    -1.286394            1                1    łu   468219.0
+    :
+    : [12 rows x 22 columns]
+    : ---------------------------------------------------------------------------
+    :      Unnamed: 0    WORD_V rodzaj PoS_V  PoS_%_ANSWERS_V  LETTER_CNT_V  SYLL_CNT_V  FIRST_SYLL_CNT_V FIRST_SYLLL SUFF_verbs  ...     AVG_V      SD_V  T_TEST_3_V     P_VALUE_V   CONFI_V  Unnamed: 16  Acceptance%  Acceptance_mean  SYLL        COUNT
+    : 146         150  posyścać    NaN  VERB       100.000000             8           4               NaN          po      .*ać$  ...  2.052632  0.970320   -4.255796  4.755068e-04 -1.415048    -0.479689            1                1    po  183357765.0
+    : 147         151   osorsać    NaN  VERB       100.000000             7           3               NaN           o      .*ać$  ...  2.473684  1.020263   -2.248595  3.730029e-02 -1.018067    -0.034565            1                1     o  141740900.0
+    : 148         152  ocpiatać    NaN  VERB       100.000000             8           2               NaN       ocpia      .*ać$  ...  2.000000  0.942809   -4.623311  2.111495e-04 -1.454419    -0.545581            1                1   NaN          NaN
+    : 149         153  ocpiadać    NaN  VERB       100.000000             8           2               NaN       ocpia      .*ać$  ...  2.315789  1.002920   -2.973722  8.136982e-03 -1.167602    -0.200819            1                1   NaN          NaN
+    : 150         154  zapumkić    NaN  VERB        89.500000             8           3               NaN          za      .*ić$  ...  2.473684  1.073334   -2.137411  4.653922e-02 -1.043646    -0.008985            1                1    za  100913136.0
+    : 151         155   gżąchyć    NaN  VERB        90.909091             7           2               NaN         gżą      .*yć$  ...  2.181818  0.873863   -3.105295  1.114965e-02 -1.405251    -0.231113            1                1   NaN          NaN
+    : 152         156  ocpiakać    NaN  VERB       100.000000             8           2               NaN       ocpia      .*ać$  ...  2.090909  0.831209   -3.627381  4.632631e-03 -1.467505    -0.350677            1                1   NaN          NaN
+    : 153         157  pozlodić    NaN  VERB       100.000000             8           3               NaN          po      .*ić$  ...  1.909091  0.700649   -5.163978  4.227812e-04 -1.561612    -0.620207            1                1    po  183357765.0
+    : 154         158  onzietać    NaN  VERB       100.000000             8           3               NaN          on      .*ać$  ...  2.363636  0.924416   -2.283148  4.554128e-02 -1.257395    -0.015332            1                1    on     498964.0
+    : 155         159    cyśnyć    NaN  VERB        81.818182             6           2               NaN          cy      .*yć$  ...  2.272727  0.904534   -2.666667  2.362735e-02 -1.334947    -0.119598            1                1    cy    2190975.0
+    : 156         160   lżąchyć    NaN  VERB       100.000000             7           2               NaN         lżą      .*yć$  ...  2.090909  0.831209   -3.627381  4.632631e-03 -1.467505    -0.350677            1                1   NaN          NaN
+    : 157         161    kyctić    NaN  VERB        90.909091             6           2               NaN         kyc      .*ić$  ...  1.363636  0.504525  -10.757057  8.111368e-07 -1.975308    -1.297419            1                1   NaN          NaN
+    :
+    : [12 rows x 22 columns]
+    :
+    :END:
+
+*** DONE Diff =words= DataFrames
+
+    #+BEGIN_SRC ipython :session *iPython* :eval yes :results raw drawer :exports both :shebang "#!/usr/bin/env ipython\n# -*- coding: utf-8 -*-\n\n" :tangle yes
+
+tmp_merged = pd.DataFrame()
+
+tmp_merged = pd.merge(
+    left        = s2002_words_jdo_unique[[ "WORD_N" ]],
+    right       = s2002_words_mzf_unique[[ "WORD_V" ]],
+    how         = "outer",
+    left_on     = "WORD_N",
+    right_on    = "WORD_V",
+    indicator   = True,
+    suffixes    = ("_jdo", "_mzf"),
+)
+
+print( "="*75 )
+print( tmp_merged[ tmp_merged["_merge"] == "right_only" ] )
+print( "="*75 )
+print( tmp_merged[ tmp_merged["_merge"] == "left_only" ] )
+    
+    #+END_SRC
+
+    #+RESULTS:
+    :RESULTS:
+    # Out[133]:
+    # output
+    : ===========================================================================
+    :     WORD_N    WORD_V      _merge
+    : 159    NaN   nallnać  right_only
+    : 160    NaN   nallmać  right_only
+    : 161    NaN   nallbać  right_only
+    : 162    NaN  naerzżyć  right_only
+    : ===========================================================================
+    :     WORD_N WORD_V     _merge
+    : 158    NaN    NaN  left_only
+    :
+    :END:
+
+** Proc 03: Merge
+*** DONE Prelude
+
+    #+BEGIN_SRC ipython :session *iPython* :eval yes :results raw drawer :exports both :shebang "#!/usr/bin/env ipython\n# -*- coding: utf-8 -*-\n\n" :tangle yes
+
+s2002_words_jdo_unique_sylls = s2002_words_jdo_unique.copy()
+s2002_words_mzf_unique_sylls = s2002_words_mzf_unique.copy()
+s2002_words_new_unique_sylls = s2002_words_new_unique.copy()
+
+    #+END_SRC
+
+    #+RESULTS:
+    :RESULTS:
+    # Out[134]:
+    :END:
+
+*** DONE Merge =s2002_words_jdo_unique= from ~jod~ with =s2002_sylls_1st_freq_min_2=
+
+    #+BEGIN_SRC ipython :session *iPython* :eval yes :results raw drawer :exports both :shebang "#!/usr/bin/env ipython\n# -*- coding: utf-8 -*-\n\n" :tangle yes
+
+s2002_words_jdo_unique_sylls = pd.merge(
+    left        = s2002_words_jdo_unique_sylls,
+    right       = s2002_sylls_1st_freq_min_2,
+    how         = "left",
+    left_on     = "FIRST_SYLL",
+    right_on    = "SYLL",
+    suffixes    = ("_jdo", "_1st_freq_min_2"),
+    # validate    = "one_to_many",
+)
+
+print( s2002_words_jdo_unique_sylls.shape )
+    
+    #+END_SRC
+
+    #+RESULTS:
+    :RESULTS:
+    # Out[135]:
+    # output
+    : (159, 1026)
+    :
+    :END:
+
+*** DONE Merge =s2002_words_jdo_unique= from ~jod~ with =s2002_sylls_1st_freq_min_1=
+
+    #+BEGIN_SRC ipython :session *iPython* :eval yes :results raw drawer :exports both :shebang "#!/usr/bin/env ipython\n# -*- coding: utf-8 -*-\n\n" :tangle yes
+
+s2002_words_jdo_unique_sylls = pd.merge(
+    left        = s2002_words_jdo_unique_sylls,
+    right       = s2002_sylls_1st_freq_min_1,
+    how         = "left",
+    left_on     = "FIRST_SYLL",
+    right_on    = "SYLL",
+    suffixes    = ("_jdo", "_1st_freq_min_1"),
+    # validate    = "one_to_many",
+)
+
+print( s2002_words_jdo_unique_sylls.shape )
+
+    #+END_SRC
+
+    #+RESULTS:
+    :RESULTS:
+    # Out[136]:
+    # output
+    : (159, 1028)
+    :
+    :END:
+
+*** DONE Merge =s2002_words_jdo_unique= from ~jod~ with =s2002_sylls_ANY_freq_min_1=
+
+    #+BEGIN_SRC ipython :session *iPython* :eval yes :results raw drawer :exports both :shebang "#!/usr/bin/env ipython\n# -*- coding: utf-8 -*-\n\n" :tangle yes
+
+s2002_words_jdo_unique_sylls = pd.merge(
+    left        = s2002_words_jdo_unique_sylls,
+    right       = s2002_sylls_ANY_freq_min_1,
+    how         = "left",
+    left_on     = "FIRST_SYLL",
+    right_on    = "SYLL",
+    suffixes    = ("_jdo", "_ANY_freq_min_1"),
+    # validate    = "one_to_many",
+)
+
+print( s2002_words_jdo_unique_sylls.shape )
+
+    #+END_SRC
+
+    #+RESULTS:
+    :RESULTS:
+    # Out[137]:
+    # output
+    : (159, 1030)
+    :
+    :END:
+
+*** DONE Merge =s2002_words_mzf_unique= from ~mzf~ with =s2002_sylls_1st_freq_min_2=
+
+    #+BEGIN_SRC ipython :session *iPython* :eval yes :results raw drawer :exports both :shebang "#!/usr/bin/env ipython\n# -*- coding: utf-8 -*-\n\n" :tangle yes
+
+s2002_words_mzf_unique_sylls = pd.merge(
+    left        = s2002_words_mzf_unique_sylls,
+    right       = s2002_sylls_1st_freq_min_2,
+    how         = "left",
+    left_on     = "FIRST_SYLLL",
+    right_on    = "SYLL",
+    suffixes    = ("_mzf", "_1st_freq_min_2"),
+    # validate    = "one_to_many",
+)
+
+print( s2002_words_mzf_unique_sylls.shape )
+
+    #+END_SRC
+
+    #+RESULTS:
+    :RESULTS:
+    # Out[138]:
+    # output
+    : (162, 21)
+    :
+    :END:
+
+*** DONE Merge =s2002_words_mzf_unique= from ~mzf~ with =s2002_sylls_1st_freq_min_1=
+
+    #+BEGIN_SRC ipython :session *iPython* :eval yes :results raw drawer :exports both :shebang "#!/usr/bin/env ipython\n# -*- coding: utf-8 -*-\n\n" :tangle yes
+
+s2002_words_mzf_unique_sylls = pd.merge(
+    left        = s2002_words_mzf_unique_sylls,
+    right       = s2002_sylls_1st_freq_min_1,
+    how         = "left",
+    left_on     = "FIRST_SYLLL",
+    right_on    = "SYLL",
+    suffixes    = ("_mzf", "_1st_freq_min_1"),
+    # validate    = "one_to_many",
+)
+
+print( s2002_words_mzf_unique_sylls.shape )
+
+    #+END_SRC
+
+    #+RESULTS:
+    :RESULTS:
+    # Out[139]:
+    # output
+    : (162, 23)
+    :
+    :END:
+
+*** DONE Merge =s2002_words_mzf_unique= from ~mzf~ with =s2002_sylls_ANY_freq_min_1=
+
+    #+BEGIN_SRC ipython :session *iPython* :eval yes :results raw drawer :exports both :shebang "#!/usr/bin/env ipython\n# -*- coding: utf-8 -*-\n\n" :tangle yes
+
+s2002_words_mzf_unique_sylls = pd.merge(
+    left        = s2002_words_mzf_unique_sylls,
+    right       = s2002_sylls_ANY_freq_min_1,
+    how         = "left",
+    left_on     = "FIRST_SYLLL",
+    right_on    = "SYLL",
+    suffixes    = ("_mzf", "_ANY_freq_min_1"),
+    # validate    = "one_to_many",
+)
+
+print( s2002_words_mzf_unique_sylls.shape )
+
+    #+END_SRC
+
+    #+RESULTS:
+    :RESULTS:
+    # Out[140]:
+    # output
+    : (162, 25)
+    :
+    :END:
+
+*** DONE Merge =s2002_words_new_unique= from ~new~ with =s2002_sylls_1st_freq_min_2=
+
+    #+BEGIN_SRC ipython :session *iPython* :eval yes :results raw drawer :exports both :shebang "#!/usr/bin/env ipython\n# -*- coding: utf-8 -*-\n\n" :tangle yes
+
+s2002_words_new_unique_sylls = pd.merge(
+    left        = s2002_words_new_unique_sylls,
+    right       = s2002_sylls_1st_freq_min_2,
+    how         = "left",
+    left_on     = "FIRST_SYLLL",
+    right_on    = "SYLL",
+    suffixes    = ("_new", "_1st_freq_min_2"),
+    # validate    = "one_to_many",
+)
+
+print( s2002_words_new_unique_sylls.shape )
+
+    #+END_SRC
+
+    #+RESULTS:
+    :RESULTS:
+    # Out[141]:
+    # output
+    : (158, 24)
+    :
+    :END:
+
+*** DONE Merge =s2002_words_new_unique= from ~new~ with =s2002_sylls_1st_freq_min_1=
+
+    #+BEGIN_SRC ipython :session *iPython* :eval yes :results raw drawer :exports both :shebang "#!/usr/bin/env ipython\n# -*- coding: utf-8 -*-\n\n" :tangle yes
+
+s2002_words_new_unique_sylls = pd.merge(
+    left        = s2002_words_new_unique_sylls,
+    right       = s2002_sylls_1st_freq_min_1,
+    how         = "left",
+    left_on     = "FIRST_SYLLL",
+    right_on    = "SYLL",
+    suffixes    = ("_new", "_1st_freq_min_1"),
+    # validate    = "one_to_many",
+)
+
+print( s2002_words_new_unique_sylls.shape )
+
+    #+END_SRC
+
+    #+RESULTS:
+    :RESULTS:
+    # Out[142]:
+    # output
+    : (158, 26)
+    :
+    :END:
+
+*** DONE Merge =s2002_words_new_unique= from ~new~ with =s2002_sylls_ANY_freq_min_1=
+
+    #+BEGIN_SRC ipython :session *iPython* :eval yes :results raw drawer :exports both :shebang "#!/usr/bin/env ipython\n# -*- coding: utf-8 -*-\n\n" :tangle yes
+
+s2002_words_new_unique_sylls = pd.merge(
+    left        = s2002_words_new_unique_sylls,
+    right       = s2002_sylls_ANY_freq_min_1,
+    how         = "left",
+    left_on     = "FIRST_SYLLL",
+    right_on    = "SYLL",
+    suffixes    = ("_new", "_ANY_freq_min_1"),
+    # validate    = "one_to_many",
+)
+
+print( s2002_words_new_unique_sylls.shape )
+
+    #+END_SRC
+
+    #+RESULTS:
+    :RESULTS:
+    # Out[143]:
+    # output
+    : (158, 28)
+    :
+    :END:
+
+*** DONE Checkup =words= from ~jod~
+
+    #+BEGIN_SRC ipython :session *iPython* :eval yes :results raw drawer :exports both :shebang "#!/usr/bin/env ipython\n# -*- coding: utf-8 -*-\n\n" :tangle yes
+
+df_list = [  s2002_words_jdo_unique_sylls,  ]
+df_info = [ "s2002_words_jdo_unique_sylls", ]
+df_head = 12
+df_tail = 12
+
+df_checkup_bulk( df_list=df_list, df_info=df_info, df_head=df_head, df_tail=df_tail, )
+
+    #+END_SRC
+
+    #+RESULTS:
+    :RESULTS:
+    # Out[144]:
+    # output
+    : ===========================================================================
+    : s2002_words_jdo_unique_sylls
+    : ===========================================================================
+    : idx count: 159
+    : row count: 1030
+    : ---------------------------------------------------------------------------
+    :       WORD_N GEN_N PoS_N  PoS_%_ANSWERS_N  LETTER_CNT_N  SYLL_CNT_N  FIRST_SYLL_CNT_N FIRST_SYLL SUFF_nouns  OLD_20_Wuggy_N  ...  WORD_N.30  GEN_N.30  PoS_N.30  PoS_%_ANSWERS_N.30  SYLL_jdo  COUNT_jdo  SYLL_1st_freq_min_1  COUNT_1st_freq_min_1  SYLL      COUNT
+    : 0    ciltrum     n  NOUN             93.8           7.0         2.0               NaN        cil      .*um$            2.65  ...        NaN       NaN       NaN                 NaN       NaN        NaN                  NaN                   NaN   cil    29927.0
+    : 1    celbrum     n  NOUN             90.0           7.0         2.0               NaN        cel      .*um$            2.80  ...        NaN       NaN       NaN                 NaN       cel   349254.0                  cel             1016856.0   cel  1036591.0
+    : 2     chósło     n  NOUN             85.0           6.0         2.0               NaN        chó      .*ło$            2.75  ...        NaN       NaN       NaN                 NaN       chó   104048.0                  chó              104048.0   chó   104048.0
+    : 3    celznum     n  NOUN             82.4           7.0         2.0               NaN        cel      .*um$            2.95  ...        NaN       NaN       NaN                 NaN       cel   349254.0                  cel             1016856.0   cel  1036591.0
+    : 4    celfrum     n  NOUN             95.2           7.0         2.0               NaN        cel      .*um$            2.80  ...        NaN       NaN       NaN                 NaN       cel   349254.0                  cel             1016856.0   cel  1036591.0
+    : 5    celchum     n  NOUN             95.2           7.0         2.0               NaN        cel      .*um$            2.80  ...        NaN       NaN       NaN                 NaN       cel   349254.0                  cel             1016856.0   cel  1036591.0
+    : 6    celtkum     n  NOUN             80.0           7.0         2.0               NaN       celt      .*um$            2.90  ...        NaN       NaN       NaN                 NaN       NaN        NaN                  NaN                   NaN   NaN        NaN
+    : 7    celkrum     n  NOUN             80.8           7.0         2.0               NaN        cel      .*um$            2.90  ...        NaN       NaN       NaN                 NaN       cel   349254.0                  cel             1016856.0   cel  1036591.0
+    : 8   tłowiwko     n  NOUN             88.5           8.0         3.0               NaN        tło      .*ko$            2.95  ...        NaN       NaN       NaN                 NaN       tło    16428.0                  tło              104308.0   tło   586640.0
+    : 9   gnowiwko     n  NOUN            100.0           8.0         3.0               NaN        gno      .*ko$            3.00  ...        NaN       NaN       NaN                 NaN       gno    18052.0                  gno               18052.0   gno  1013703.0
+    : 10  młowiwko     n  NOUN             89.5           8.0         3.0               NaN        mło      .*ko$            2.90  ...        NaN       NaN       NaN                 NaN       mło  4336191.0                  mło             4336191.0   mło  4336191.0
+    : 11   łudioro     n  NOUN             84.2           7.0         3.0               NaN         łu      .*ro$            2.90  ...        NaN       NaN       NaN                 NaN        łu   564218.0                   łu              564218.0    łu  8568449.0
+    :
+    : [12 rows x 1030 columns]
+    : ---------------------------------------------------------------------------
+    :        WORD_N GEN_N PoS_N  PoS_%_ANSWERS_N  LETTER_CNT_N  SYLL_CNT_N  FIRST_SYLL_CNT_N FIRST_SYLL SUFF_nouns  OLD_20_Wuggy_N  ...  WORD_N.30  GEN_N.30  PoS_N.30  PoS_%_ANSWERS_N.30  SYLL_jdo    COUNT_jdo  SYLL_1st_freq_min_1  COUNT_1st_freq_min_1  SYLL        COUNT
+    : 147   osorsać   NaN  VERB       100.000000           7.0         3.0               NaN          o      .*ać$            2.95  ...        NaN       NaN       NaN                 NaN         o  159914508.0                    o           211008068.0     o  212152294.0
+    : 148  ocpiatać   NaN  VERB       100.000000           8.0         2.0               NaN      ocpia      .*ać$            2.80  ...        NaN       NaN       NaN                 NaN       NaN          NaN                  NaN                   NaN   NaN          NaN
+    : 149  ocpiadać   NaN  VERB       100.000000           8.0         2.0               NaN      ocpia      .*ać$            2.80  ...        NaN       NaN       NaN                 NaN       NaN          NaN                  NaN                   NaN   NaN          NaN
+    : 150  zapumkić   NaN  VERB        89.500000           8.0         3.0               NaN         za      .*ić$            2.90  ...        NaN       NaN       NaN                 NaN        za  127097688.0                   za           155246607.0    za  183476380.0
+    : 151   gżąchyć   NaN  VERB        90.909091           7.0         2.0               NaN        gżą      .*yć$            3.00  ...        NaN       NaN       NaN                 NaN       NaN          NaN                  NaN                   NaN   NaN          NaN
+    : 152  ocpiakać   NaN  VERB       100.000000           8.0         2.0               NaN      ocpia      .*ać$            2.85  ...        NaN       NaN       NaN                 NaN       NaN          NaN                  NaN                   NaN   NaN          NaN
+    : 153  pozlodić   NaN  VERB       100.000000           8.0         3.0               NaN         po      .*ić$            2.80  ...        NaN       NaN       NaN                 NaN        po  212996121.0                   po           246253294.0    po  287191469.0
+    : 154  onzietać   NaN  VERB       100.000000           8.0         3.0               NaN         on      .*ać$            2.90  ...        NaN       NaN       NaN                 NaN        on     569922.0                   on             5825023.0    on    5994603.0
+    : 155    cyśnyć   NaN  VERB        81.818182           6.0         2.0               NaN         cy      .*yć$            2.85  ...        NaN       NaN       NaN                 NaN        cy    2929813.0                   cy             2972271.0    cy   44819201.0
+    : 156   lżąchyć   NaN  VERB       100.000000           7.0         2.0               NaN        lżą      .*yć$            2.90  ...        NaN       NaN       NaN                 NaN       NaN          NaN                  NaN                   NaN   NaN          NaN
+    : 157    kyctić   NaN  VERB        90.909091           6.0         2.0               NaN        kyc      .*ić$            2.90  ...        NaN       NaN       NaN                 NaN       NaN          NaN                  NaN                   NaN   NaN          NaN
+    : 158       NaN   NaN   NaN              NaN           NaN         NaN               NaN        NaN        NaN             NaN  ...        NaN       NaN       NaN                 NaN       NaN      13129.0                  NaN               13129.0   NaN    3219117.0
+    :
+    : [12 rows x 1030 columns]
+    :
+    :END:
+
+*** DONE Checkup =words= from ~mzf~
+
+    #+BEGIN_SRC ipython :session *iPython* :eval yes :results raw drawer :exports both :shebang "#!/usr/bin/env ipython\n# -*- coding: utf-8 -*-\n\n" :tangle yes
+
+df_list = [  s2002_words_mzf_unique_sylls,  ]
+df_info = [ "s2002_words_mzf_unique_sylls", ]
+df_head = 12
+df_tail = 12
+
+df_checkup_bulk( df_list=df_list, df_info=df_info, df_head=df_head, df_tail=df_tail, )
+
+    #+END_SRC
+
+    #+RESULTS:
+    :RESULTS:
+    # Out[145]:
+    # output
+    : ===========================================================================
+    : s2002_words_mzf_unique_sylls
+    : ===========================================================================
+    : idx count: 162
+    : row count: 25  ['WORD_V', 'rodzaj', 'PoS_V', 'PoS_%_ANSWERS_V', 'LETTER_CNT_V', 'SYLL_CNT_V', 'FIRST_SYLL_CNT_V', 'FIRST_SYLLL', 'SUFF_verbs', 'OLD_20_Wuggy_V', 'OLD20_JN_V', 'AVG_V', 'SD_V', 'T_TEST_3_V', 'P_VALUE_V', 'CONFI_V', 'Unnamed: 16', 'Acceptance%', 'Acceptance_mean', 'SYLL_mzf', 'COUNT_mzf', 'SYLL_1st_freq_min_1', 'COUNT_1st_freq_min_1', 'SYLL', 'COUNT']
+    : ---------------------------------------------------------------------------
+    :       WORD_V rodzaj PoS_V  PoS_%_ANSWERS_V  LETTER_CNT_V  SYLL_CNT_V  FIRST_SYLL_CNT_V FIRST_SYLLL SUFF_verbs  OLD_20_Wuggy_V  ...   CONFI_V  Unnamed: 16  Acceptance%  Acceptance_mean  SYLL_mzf  COUNT_mzf  SYLL_1st_freq_min_1  COUNT_1st_freq_min_1  SYLL      COUNT
+    : 0    ciltrum      n  NOUN             93.8             7           2               NaN         cil      .*um$            2.65  ... -1.935080    -1.064920            1                1       NaN        NaN                  NaN                   NaN   cil    29927.0
+    : 1    celbrum      n  NOUN             90.0             7           2               NaN         cel      .*um$            2.80  ... -1.618605    -0.781395            1                1       cel   349254.0                  cel             1016856.0   cel  1036591.0
+    : 2     chósło      n  NOUN             85.0             6           2               NaN         chó      .*ło$            2.75  ... -1.134698    -0.065302            1                1       chó   104048.0                  chó              104048.0   chó   104048.0
+    : 3    celznum      n  NOUN             82.4             7           2               NaN         cel      .*um$            2.95  ... -1.713819    -0.992064            1                1       cel   349254.0                  cel             1016856.0   cel  1036591.0
+    : 4    celfrum      n  NOUN             95.2             7           2               NaN         cel      .*um$            2.80  ... -1.667640    -0.808551            1                1       cel   349254.0                  cel             1016856.0   cel  1036591.0
+    : 5    celchum      n  NOUN             95.2             7           2               NaN         cel      .*um$            2.80  ... -1.667640    -0.808551            1                1       cel   349254.0                  cel             1016856.0   cel  1036591.0
+    : 6    celtkum      n  NOUN             80.0             7           2               NaN        celt      .*um$            2.90  ... -1.623807    -0.576193            1                1       NaN        NaN                  NaN                   NaN   NaN        NaN
+    : 7    celkrum      n  NOUN             80.8             7           2               NaN         cel      .*um$            2.90  ... -1.473196    -0.603727            1                1       cel   349254.0                  cel             1016856.0   cel  1036591.0
+    : 8   tłowiwko      n  NOUN             88.5             8           3               NaN         tło      .*ko$            2.95  ... -1.185985    -0.352477            1                1       tło    16428.0                  tło              104308.0   tło   586640.0
+    : 9   gnowiwko      n  NOUN            100.0             8           3               NaN         gno      .*ko$            3.00  ... -1.069315    -0.088580            1                1       gno    18052.0                  gno               18052.0   gno  1013703.0
+    : 10  młowiwko      n  NOUN             89.5             8           3               NaN         mło      .*ko$            2.90  ... -1.142771    -0.015124            1                1       mło  4336191.0                  mło             4336191.0   mło  4336191.0
+    : 11   łudioro      n  NOUN             84.2             7           3               NaN          łu      .*ro$            2.90  ... -1.871501    -1.286394            1                1        łu   564218.0                   łu              564218.0    łu  8568449.0
+    :
+    : [12 rows x 25 columns]
+    : ---------------------------------------------------------------------------
+    :        WORD_V rodzaj PoS_V  PoS_%_ANSWERS_V  LETTER_CNT_V  SYLL_CNT_V  FIRST_SYLL_CNT_V FIRST_SYLLL SUFF_verbs  OLD_20_Wuggy_V  ...   CONFI_V  Unnamed: 16  Acceptance%  Acceptance_mean  SYLL_mzf    COUNT_mzf  SYLL_1st_freq_min_1  COUNT_1st_freq_min_1  SYLL        COUNT
+    : 150  posyścać    NaN  VERB       100.000000             8           4               NaN          po      .*ać$            2.85  ... -1.415048    -0.479689            1                1        po  212996121.0                   po           246253294.0    po  287191469.0
+    : 151   osorsać    NaN  VERB       100.000000             7           3               NaN           o      .*ać$            2.95  ... -1.018067    -0.034565            1                1         o  159914508.0                    o           211008068.0     o  212152294.0
+    : 152  ocpiatać    NaN  VERB       100.000000             8           2               NaN       ocpia      .*ać$            2.80  ... -1.454419    -0.545581            1                1       NaN          NaN                  NaN                   NaN   NaN          NaN
+    : 153  ocpiadać    NaN  VERB       100.000000             8           2               NaN       ocpia      .*ać$            2.80  ... -1.167602    -0.200819            1                1       NaN          NaN                  NaN                   NaN   NaN          NaN
+    : 154  zapumkić    NaN  VERB        89.500000             8           3               NaN          za      .*ić$            2.90  ... -1.043646    -0.008985            1                1        za  127097688.0                   za           155246607.0    za  183476380.0
+    : 155   gżąchyć    NaN  VERB        90.909091             7           2               NaN         gżą      .*yć$            3.00  ... -1.405251    -0.231113            1                1       NaN          NaN                  NaN                   NaN   NaN          NaN
+    : 156  ocpiakać    NaN  VERB       100.000000             8           2               NaN       ocpia      .*ać$            2.85  ... -1.467505    -0.350677            1                1       NaN          NaN                  NaN                   NaN   NaN          NaN
+    : 157  pozlodić    NaN  VERB       100.000000             8           3               NaN          po      .*ić$            2.80  ... -1.561612    -0.620207            1                1        po  212996121.0                   po           246253294.0    po  287191469.0
+    : 158  onzietać    NaN  VERB       100.000000             8           3               NaN          on      .*ać$            2.90  ... -1.257395    -0.015332            1                1        on     569922.0                   on             5825023.0    on    5994603.0
+    : 159    cyśnyć    NaN  VERB        81.818182             6           2               NaN          cy      .*yć$            2.85  ... -1.334947    -0.119598            1                1        cy    2929813.0                   cy             2972271.0    cy   44819201.0
+    : 160   lżąchyć    NaN  VERB       100.000000             7           2               NaN         lżą      .*yć$            2.90  ... -1.467505    -0.350677            1                1       NaN          NaN                  NaN                   NaN   NaN          NaN
+    : 161    kyctić    NaN  VERB        90.909091             6           2               NaN         kyc      .*ić$            2.90  ... -1.975308    -1.297419            1                1       NaN          NaN                  NaN                   NaN   NaN          NaN
+    :
+    : [12 rows x 25 columns]
+    :
+    :END:
+
+*** DONE Checkup =words= from ~new~
+
+    #+BEGIN_SRC ipython :session *iPython* :eval yes :results raw drawer :exports both :shebang "#!/usr/bin/env ipython\n# -*- coding: utf-8 -*-\n\n" :tangle yes
+
+df_list = [  s2002_words_new_unique_sylls,  ]
+df_info = [ "s2002_words_new_unique_sylls", ]
+df_head = 12
+df_tail = 12
+
+df_checkup_bulk( df_list=df_list, df_info=df_info, df_head=df_head, df_tail=df_tail, )
+
+    #+END_SRC
+
+    #+RESULTS:
+    :RESULTS:
+    # Out[147]:
+    # output
+    : ===========================================================================
+    : s2002_words_new_unique_sylls
+    : ===========================================================================
+    : idx count: 158
+    : row count: 28  ['Unnamed: 0', 'WORD_V', 'rodzaj', 'PoS_V', 'PoS_%_ANSWERS_V', 'LETTER_CNT_V', 'SYLL_CNT_V', 'FIRST_SYLL_CNT_V', 'FIRST_SYLLL', 'SUFF_verbs', 'OLD_20_Wuggy_V', 'OLD20_JN_V', 'AVG_V', 'SD_V', 'T_TEST_3_V', 'P_VALUE_V', 'CONFI_V', 'Unnamed: 16', 'Acceptance%', 'Acceptance_mean', 'SYLL_new', 'COUNT_new', 'SYLL_1st_freq_min_2', 'COUNT_1st_freq_min_2', 'SYLL_new', 'COUNT_new', 'SYLL_ANY_freq_min_1', 'COUNT_ANY_freq_min_1']
+    : ---------------------------------------------------------------------------
+    :     Unnamed: 0    WORD_V rodzaj PoS_V  PoS_%_ANSWERS_V  LETTER_CNT_V  SYLL_CNT_V  FIRST_SYLL_CNT_V FIRST_SYLLL SUFF_verbs  ...  Acceptance%  Acceptance_mean  SYLL_new  COUNT_new  SYLL_1st_freq_min_2  COUNT_1st_freq_min_2  SYLL_new  COUNT_new  SYLL_ANY_freq_min_1  COUNT_ANY_freq_min_1
+    : 0            0   ciltrum      n  NOUN             93.8             7           2               NaN         cil      .*um$  ...            1                1       NaN        NaN                  NaN                   NaN       NaN        NaN                  cil               29927.0
+    : 1            1   celbrum      n  NOUN             90.0             7           2               NaN         cel      .*um$  ...            1                1       cel    50931.0                  cel              349254.0       cel  1016856.0                  cel             1036591.0
+    : 2            2    chósło      n  NOUN             85.0             6           2               NaN         chó      .*ło$  ...            1                1       chó    55278.0                  chó              104048.0       chó   104048.0                  chó              104048.0
+    : 3            3   celznum      n  NOUN             82.4             7           2               NaN         cel      .*um$  ...            1                1       cel    50931.0                  cel              349254.0       cel  1016856.0                  cel             1036591.0
+    : 4            4   celfrum      n  NOUN             95.2             7           2               NaN         cel      .*um$  ...            1                1       cel    50931.0                  cel              349254.0       cel  1016856.0                  cel             1036591.0
+    : 5            5   celchum      n  NOUN             95.2             7           2               NaN         cel      .*um$  ...            1                1       cel    50931.0                  cel              349254.0       cel  1016856.0                  cel             1036591.0
+    : 6            6   celtkum      n  NOUN             80.0             7           2               NaN        celt      .*um$  ...            1                1       NaN        NaN                  NaN                   NaN       NaN        NaN                  NaN                   NaN
+    : 7            7   celkrum      n  NOUN             80.8             7           2               NaN         cel      .*um$  ...            1                1       cel    50931.0                  cel              349254.0       cel  1016856.0                  cel             1036591.0
+    : 8            8  tłowiwko      n  NOUN             88.5             8           3               NaN         tło      .*ko$  ...            1                1       NaN        NaN                  tło               16428.0       tło   104308.0                  tło              586640.0
+    : 9            9  gnowiwko      n  NOUN            100.0             8           3               NaN         gno      .*ko$  ...            1                1       NaN        NaN                  gno               18052.0       gno    18052.0                  gno             1013703.0
+    : 10          10  młowiwko      n  NOUN             89.5             8           3               NaN         mło      .*ko$  ...            1                1       mło  4074290.0                  mło             4336191.0       mło  4336191.0                  mło             4336191.0
+    : 11          11   łudioro      n  NOUN             84.2             7           3               NaN          łu      .*ro$  ...            1                1        łu   468219.0                   łu              564218.0        łu   564218.0                   łu             8568449.0
+    :
+    : [12 rows x 28 columns]
+    : ---------------------------------------------------------------------------
+    :      Unnamed: 0    WORD_V rodzaj PoS_V  PoS_%_ANSWERS_V  LETTER_CNT_V  SYLL_CNT_V  FIRST_SYLL_CNT_V FIRST_SYLLL SUFF_verbs  ...  Acceptance%  Acceptance_mean  SYLL_new    COUNT_new  SYLL_1st_freq_min_2  COUNT_1st_freq_min_2  SYLL_new    COUNT_new  SYLL_ANY_freq_min_1  COUNT_ANY_freq_min_1
+    : 146         150  posyścać    NaN  VERB       100.000000             8           4               NaN          po      .*ać$  ...            1                1        po  183357765.0                   po           212996121.0        po  246253294.0                   po           287191469.0
+    : 147         151   osorsać    NaN  VERB       100.000000             7           3               NaN           o      .*ać$  ...            1                1         o  141740900.0                    o           159914508.0         o  211008068.0                    o           212152294.0
+    : 148         152  ocpiatać    NaN  VERB       100.000000             8           2               NaN       ocpia      .*ać$  ...            1                1       NaN          NaN                  NaN                   NaN       NaN          NaN                  NaN                   NaN
+    : 149         153  ocpiadać    NaN  VERB       100.000000             8           2               NaN       ocpia      .*ać$  ...            1                1       NaN          NaN                  NaN                   NaN       NaN          NaN                  NaN                   NaN
+    : 150         154  zapumkić    NaN  VERB        89.500000             8           3               NaN          za      .*ić$  ...            1                1        za  100913136.0                   za           127097688.0        za  155246607.0                   za           183476380.0
+    : 151         155   gżąchyć    NaN  VERB        90.909091             7           2               NaN         gżą      .*yć$  ...            1                1       NaN          NaN                  NaN                   NaN       NaN          NaN                  NaN                   NaN
+    : 152         156  ocpiakać    NaN  VERB       100.000000             8           2               NaN       ocpia      .*ać$  ...            1                1       NaN          NaN                  NaN                   NaN       NaN          NaN                  NaN                   NaN
+    : 153         157  pozlodić    NaN  VERB       100.000000             8           3               NaN          po      .*ić$  ...            1                1        po  183357765.0                   po           212996121.0        po  246253294.0                   po           287191469.0
+    : 154         158  onzietać    NaN  VERB       100.000000             8           3               NaN          on      .*ać$  ...            1                1        on     498964.0                   on              569922.0        on    5825023.0                   on             5994603.0
+    : 155         159    cyśnyć    NaN  VERB        81.818182             6           2               NaN          cy      .*yć$  ...            1                1        cy    2190975.0                   cy             2929813.0        cy    2972271.0                   cy            44819201.0
+    : 156         160   lżąchyć    NaN  VERB       100.000000             7           2               NaN         lżą      .*yć$  ...            1                1       NaN          NaN                  NaN                   NaN       NaN          NaN                  NaN                   NaN
+    : 157         161    kyctić    NaN  VERB        90.909091             6           2               NaN         kyc      .*ić$  ...            1                1       NaN          NaN                  NaN                   NaN       NaN          NaN                  NaN                   NaN
+    :
+    : [12 rows x 28 columns]
+    :
+    :END:
+
+** DONE Save
+*** DONE Save
+
+    #+BEGIN_SRC ipython :session *iPython* :eval yes :results raw drawer :exports both :shebang "#!/usr/bin/env ipython\n# -*- coding: utf-8 -*-\n\n" :tangle yes
+
+DEMO_MODE = False
+
+if not DEMO_MODE:
+    df_to_xlsx( df_data=s2002_words_jdo_unique_sylls , df_name="s2002_words_jdo_unique_sylls" , df_path="data_out", add_time=False, verbose=1, )
+    df_to_xlsx( df_data=s2002_words_mzf_unique_sylls , df_name="s2002_words_mzf_unique_sylls" , df_path="data_out", add_time=False, verbose=1, )
+    df_to_xlsx( df_data=s2002_words_new_unique_sylls , df_name="s2002_words_new_unique_sylls" , df_path="data_out", add_time=False, verbose=1, )
+    print( "="*75 )
+    print("Saved *.xlsx")
+else:
+    print("*** Not saving any *.xlsx files -- DEMO_MODE is ON!!! ***")
+    
+    #+END_SRC
+
+    #+RESULTS:
+    :RESULTS:
+    # Out[121]:
+    # output
+    : Saving DataFrame as: data_out/s2002_words_jdo_unique_sylls.xlsx
+    : Saving DataFrame as: data_out/s2002_words_mzf_unique_sylls.xlsx
+    : Saving DataFrame as: data_out/s2002_words_new_unique_sylls.xlsx
+    : ===========================================================================
+    : Saved *.xlsx
+    :
+    :END:
+
+* DONE Stage 2102: Merge syllables corpora with ~s2102_words_jdo_nall~ and ~s2102_words_jdo_orig~ sheet
+** Proc 00: Load
+*** DONE Load =sylls=
+
+    #+BEGIN_SRC ipython :session *iPython* :eval query :results raw drawer :exports both :shebang "#!/usr/bin/env ipython\n# -*- coding: utf-8 -*-\n\n" :tangle stage_0001.py
+
+s2102_sylls_1st_freq_min_2 = pd.read_excel( "./data_out/s2001_words_sylls_1st_freq_min_2_sylls.xlsx", )
+s2102_sylls_1st_freq_min_1 = pd.read_excel( "./data_out/s2001_words_sylls_1st_freq_min_1_sylls.xlsx", )
+s2102_sylls_ANY_freq_min_1 = pd.read_excel( "./data_out/s2001_words_sylls_ANY_freq_min_1_sylls.xlsx", )
+
+s2102_sylls_1st_freq_min_2 = s2102_sylls_1st_freq_min_2[[ "SYLL", "COUNT" ]]
+s2102_sylls_1st_freq_min_1 = s2102_sylls_1st_freq_min_1[[ "SYLL", "COUNT" ]]
+s2102_sylls_ANY_freq_min_1 = s2102_sylls_ANY_freq_min_1[[ "SYLL", "COUNT" ]]
+
+print( "="*75 )
+print( "s2102_sylls_1st_freq_min_2.shape: " + str( s2102_sylls_1st_freq_min_2.shape ) )
+print( "s2102_sylls_1st_freq_min_1.shape: " + str( s2102_sylls_1st_freq_min_1.shape ) )
+print( "s2102_sylls_ANY_freq_min_1.shape: " + str( s2102_sylls_ANY_freq_min_1.shape ) )
+print( "="*75 )
+print( s2102_sylls_1st_freq_min_2.head( n=6 ) )
+print( "="*75 )
+print( s2102_sylls_1st_freq_min_1.head( n=6 ) )
+print( "="*75 )
+print( s2102_sylls_ANY_freq_min_1.head( n=6 ) )
+
+    #+END_SRC
+
+    #+RESULTS:
+    :RESULTS:
+    # Out[75]:
+    # output
+    : ===========================================================================
+    : s2102_sylls_1st_freq_min_2.shape: (2178, 2)
+    : s2102_sylls_1st_freq_min_1.shape: (4477, 2)
+    : s2102_sylls_ANY_freq_min_1.shape: (7072, 2)
+    : ===========================================================================
+    :   SYLL      COUNT
+    : 0   po  212996121
+    : 1    o  159914508
+    : 2   za  127097688
+    : 3   wy  103188310
+    : 4    u  100003662
+    : 5   na   84445661
+    : ===========================================================================
+    :   SYLL      COUNT
+    : 0   po  246253294
+    : 1    w  240721554
+    : 2   na  235483957
+    : 3    o  211008068
+    : 4    i  205223831
+    : 5   do  168378078
+    : ===========================================================================
+    :   SYLL      COUNT
+    : 0  nie  330386171
+    : 1   na  328495489
+    : 2   po  287191469
+    : 3    w  240721554
+    : 4    o  212152294
+    : 5    i  208880586
+    :
+    :END:
+
+*** DONE Load =words= from JDo
+
+    #+BEGIN_SRC ipython :session *iPython* :eval yes :results raw drawer :exports both :shebang "#!/usr/bin/env ipython\n# -*- coding: utf-8 -*-\n\n" :tangle yes
+
+s2102_words_jdo_nall = pd.read_excel( "./data_in/from_jdo_2019-04-16-001_sylls_cnt/syll_cnt_07042019_nall.xlsx", )
+s2102_words_jdo_orig = pd.read_excel( "./data_in/from_jdo_2019-04-16-001_sylls_cnt/syll_cnt_07042019_orig.xlsx", )
+
+
+
+
+print( "="*75 )
+print( s2102_words_jdo_nall.shape )
+print( s2102_words_jdo_orig.shape )
+
+print( "="*75 )
+pp( s2102_words_jdo_nall.columns.values )
+pp( s2102_words_jdo_orig.columns.values )
+
+    #+END_SRC
+
+    #+RESULTS:
+    :RESULTS:
+    # Out[76]:
+    # output
+    : ===========================================================================
+    : (160, 20)
+    : (157, 20)
+    : ===========================================================================
+    : array(['Unnamed: 0', 'WORD_V', 'rodzaj', 'PoS_V', 'PoS_%_ANSWERS_V',
+    :        'LETTER_CNT_V', 'SYLL_CNT_V', 'FIRST_SYLL_CNT_V', 'FIRST_SYLLL',
+    :        'SUFF_verbs', 'OLD_20_Wuggy_V', 'OLD20_JN_V', 'AVG_V', 'SD_V',
+    :        'T_TEST_3_V', 'P_VALUE_V', 'CONFI_V', 'Unnamed: 16', 'Acceptance%',
+    :        'Acceptance_mean'], dtype=object)
+    : array(['Unnamed: 0', 'WORD_V', 'rodzaj', 'PoS_V', 'PoS_%_ANSWERS_V',
+    :        'LETTER_CNT_V', 'SYLL_CNT_V', 'FIRST_SYLL_CNT_V', 'FIRST_SYLLL',
+    :        'SUFF_verbs', 'OLD_20_Wuggy_V', 'OLD20_JN_V', 'AVG_V', 'SD_V',
+    :        'T_TEST_3_V', 'P_VALUE_V', 'CONFI_V', 'Unnamed: 16', 'Acceptance%',
+    :        'Acceptance_mean'], dtype=object)
+    :
+    :END:
+
+** Proc 01: Drop duplicate rows
+*** DONE Drop dupes in =words= from ~s2102_words_jdo_nall_unique~
+
+    #+BEGIN_SRC ipython :session *iPython* :eval yes :results raw drawer :exports both :shebang "#!/usr/bin/env ipython\n# -*- coding: utf-8 -*-\n\n" :tangle yes
+
+s2102_words_jdo_nall_unique, s2102_words_jdo_nall_dupes = df_dupes(
+    df_data = s2102_words_jdo_nall,
+    subset  = "WORD_V", # consider all columns
+    keep    = 'first',
+    n_samp  = 12,
+    verbose = 2,
+)
+
+    #+END_SRC
+
+    #+RESULTS:
+    :RESULTS:
+    # Out[77]:
+    # output
+    : ===========================================================================
+    : Got: 160 words (rows).
+    : ===========================================================================
+    : KEEP: 160 words (rows).
+    : keep=first
+    : ---------------------------------------------------------------------------
+    : sample:
+    : ---------------------------------------------------------------------------
+    :     Unnamed: 0    WORD_V rodzaj PoS_V  PoS_%_ANSWERS_V  LETTER_CNT_V  SYLL_CNT_V  FIRST_SYLL_CNT_V FIRST_SYLLL SUFF_verbs  OLD_20_Wuggy_V  OLD20_JN_V     AVG_V      SD_V  T_TEST_3_V     P_VALUE_V   CONFI_V  Unnamed: 16  Acceptance%  Acceptance_mean
+    : 0            0   ciltrum      n  NOUN             93.8             7           2               NaN         cil      .*um$            2.65    2.333333  1.500000  0.816497   -7.348469  2.411835e-06 -1.935080    -1.064920            1                1
+    : 1            1   celbrum      n  NOUN             90.0             7           2               NaN         cel      .*um$            2.80    2.428571  1.800000  0.894427   -6.000000  8.979235e-06 -1.618605    -0.781395            1                1
+    : 2            2    chósło      n  NOUN             85.0             6           2               NaN         chó      .*ło$            2.75    2.428571  2.400000  1.142481   -2.348644  2.981502e-02 -1.134698    -0.065302            1                1
+    : 3            3   celznum      n  NOUN             82.4             7           2               NaN         cel      .*um$            2.95    2.571429  1.647059  0.701888   -7.947590  6.038450e-07 -1.713819    -0.992064            1                1
+    : 4            4   celfrum      n  NOUN             95.2             7           2               NaN         cel      .*um$            2.80    2.619048  1.761905  0.943650   -6.012465  7.048282e-06 -1.667640    -0.808551            1                1
+    : 5            5   celchum      n  NOUN             95.2             7           2               NaN         cel      .*um$            2.80    2.666667  1.761905  0.943650   -6.012465  7.048282e-06 -1.667640    -0.808551            1                1
+    : 6            6   celtkum      n  NOUN             80.0             7           2               NaN        celt      .*um$            2.90    2.666667  1.900000  1.119210   -4.395376  3.109725e-04 -1.623807    -0.576193            1                1
+    : 7            7   celkrum      n  NOUN             80.8             7           2               NaN         cel      .*um$            2.90    2.714286  1.961538  1.076319   -4.919673  4.588510e-05 -1.473196    -0.603727            1                1
+    : 8            8  tłowiwko      n  NOUN             88.5             8           3               NaN         tło      .*ko$            2.95    2.714286  2.230769  1.031802   -3.801430  8.235553e-04 -1.185985    -0.352477            1                1
+    : 9            9  gnowiwko      n  NOUN            100.0             8           3               NaN         gno      .*ko$            3.00    2.761905  2.421053  1.017393   -2.480432  2.323299e-02 -1.069315    -0.088580            1                1
+    : 10          10  młowiwko      n  NOUN             89.5             8           3               NaN         mło      .*ko$            2.90    2.761905  2.421053  1.169795   -2.157277  4.474830e-02 -1.142771    -0.015124            1                1
+    : 11          11   łudioro      n  NOUN             84.2             7           3               NaN          łu      .*ro$            2.90    2.809524  1.421053  0.606977  -11.338934  1.249517e-09 -1.871501    -1.286394            1                1
+    : ===========================================================================
+    : DROP: 0 words (rows).
+    : keep=first
+    : ---------------------------------------------------------------------------
+    : sample:
+    : ---------------------------------------------------------------------------
+    : Empty DataFrame
+    : Columns: [Unnamed: 0, WORD_V, rodzaj, PoS_V, PoS_%_ANSWERS_V, LETTER_CNT_V, SYLL_CNT_V, FIRST_SYLL_CNT_V, FIRST_SYLLL, SUFF_verbs, OLD_20_Wuggy_V, OLD20_JN_V, AVG_V, SD_V, T_TEST_3_V, P_VALUE_V, CONFI_V, Unnamed: 16, Acceptance%, Acceptance_mean]
+    : Index: []
+    :
+    :END:
+
+*** DONE Drop dupes in =words= from ~s2102_words_jdo_orig_unique~
+
+    #+BEGIN_SRC ipython :session *iPython* :eval yes :results raw drawer :exports both :shebang "#!/usr/bin/env ipython\n# -*- coding: utf-8 -*-\n\n" :tangle yes
+
+s2102_words_jdo_orig_unique, s2102_words_jdo_orig_dupes = df_dupes(
+    df_data = s2102_words_jdo_orig,
+    subset  = "WORD_V", # consider all columns
+    keep    = 'first',
+    n_samp  = 12,
+    verbose = 2,
+)
+
+    #+END_SRC
+
+    #+RESULTS:
+    :RESULTS:
+    # Out[78]:
+    # output
+    : ===========================================================================
+    : Got: 157 words (rows).
+    : ===========================================================================
+    : KEEP: 157 words (rows).
+    : keep=first
+    : ---------------------------------------------------------------------------
+    : sample:
+    : ---------------------------------------------------------------------------
+    :     Unnamed: 0    WORD_V rodzaj PoS_V  PoS_%_ANSWERS_V  LETTER_CNT_V  SYLL_CNT_V  FIRST_SYLL_CNT_V FIRST_SYLLL SUFF_verbs  OLD_20_Wuggy_V  OLD20_JN_V     AVG_V      SD_V  T_TEST_3_V     P_VALUE_V   CONFI_V  Unnamed: 16  Acceptance%  Acceptance_mean
+    : 0            0   ciltrum      n  NOUN             93.8             7           2               NaN         cil      .*um$            2.65    2.333333  1.500000  0.816497   -7.348469  2.411835e-06 -1.935080    -1.064920            1                1
+    : 1            1   celbrum      n  NOUN             90.0             7           2               NaN         cel      .*um$            2.80    2.428571  1.800000  0.894427   -6.000000  8.979235e-06 -1.618605    -0.781395            1                1
+    : 2            2    chósło      n  NOUN             85.0             6           2               NaN         chó      .*ło$            2.75    2.428571  2.400000  1.142481   -2.348644  2.981502e-02 -1.134698    -0.065302            1                1
+    : 3            3   celznum      n  NOUN             82.4             7           2               NaN         cel      .*um$            2.95    2.571429  1.647059  0.701888   -7.947590  6.038450e-07 -1.713819    -0.992064            1                1
+    : 4            4   celfrum      n  NOUN             95.2             7           2               NaN         cel      .*um$            2.80    2.619048  1.761905  0.943650   -6.012465  7.048282e-06 -1.667640    -0.808551            1                1
+    : 5            5   celchum      n  NOUN             95.2             7           2               NaN         cel      .*um$            2.80    2.666667  1.761905  0.943650   -6.012465  7.048282e-06 -1.667640    -0.808551            1                1
+    : 6            6   celtkum      n  NOUN             80.0             7           2               NaN        celt      .*um$            2.90    2.666667  1.900000  1.119210   -4.395376  3.109725e-04 -1.623807    -0.576193            1                1
+    : 7            7   celkrum      n  NOUN             80.8             7           2               NaN         cel      .*um$            2.90    2.714286  1.961538  1.076319   -4.919673  4.588510e-05 -1.473196    -0.603727            1                1
+    : 8            8  tłowiwko      n  NOUN             88.5             8           3               NaN         tło      .*ko$            2.95    2.714286  2.230769  1.031802   -3.801430  8.235553e-04 -1.185985    -0.352477            1                1
+    : 9            9  gnowiwko      n  NOUN            100.0             8           3               NaN         gno      .*ko$            3.00    2.761905  2.421053  1.017393   -2.480432  2.323299e-02 -1.069315    -0.088580            1                1
+    : 10          10  młowiwko      n  NOUN             89.5             8           3               NaN         mło      .*ko$            2.90    2.761905  2.421053  1.169795   -2.157277  4.474830e-02 -1.142771    -0.015124            1                1
+    : 11          11   łudioro      n  NOUN             84.2             7           3               NaN          łu      .*ro$            2.90    2.809524  1.421053  0.606977  -11.338934  1.249517e-09 -1.871501    -1.286394            1                1
+    : ===========================================================================
+    : DROP: 0 words (rows).
+    : keep=first
+    : ---------------------------------------------------------------------------
+    : sample:
+    : ---------------------------------------------------------------------------
+    : Empty DataFrame
+    : Columns: [Unnamed: 0, WORD_V, rodzaj, PoS_V, PoS_%_ANSWERS_V, LETTER_CNT_V, SYLL_CNT_V, FIRST_SYLL_CNT_V, FIRST_SYLLL, SUFF_verbs, OLD_20_Wuggy_V, OLD20_JN_V, AVG_V, SD_V, T_TEST_3_V, P_VALUE_V, CONFI_V, Unnamed: 16, Acceptance%, Acceptance_mean]
+    : Index: []
+    :
+    :END:
+
+** Proc 02: Checkups
+*** DOIN Check syllabe
+
+    #+BEGIN_SRC ipython :session *iPython* :eval yes :results raw drawer :exports both :shebang "#!/usr/bin/env ipython\n# -*- coding: utf-8 -*-\n\n" :tangle yes
+
+tmp_syll = "sy"
+
+print( s2102_sylls_1st_freq_min_2[ s2102_sylls_1st_freq_min_2[ "SYLL" ] == tmp_syll ] )
+print( s2102_sylls_1st_freq_min_1[ s2102_sylls_1st_freq_min_1[ "SYLL" ] == tmp_syll ] )
+print( s2102_sylls_ANY_freq_min_1[ s2102_sylls_ANY_freq_min_1[ "SYLL" ] == tmp_syll ] )
+
+    #+END_SRC
+
+    #+RESULTS:
+    :RESULTS:
+    # Out[79]:
+    # output
+    :     SYLL    COUNT
+    : 127   sy  6274215
+    :     SYLL    COUNT
+    : 164   sy  6274215
+    :     SYLL     COUNT
+    : 135   sy  18698335
+    :
+    :END:
+
+*** DONE Checkup =s2102_sylls_1st_freq_min_2=
+
+    #+BEGIN_SRC ipython :session *iPython* :eval yes :results raw drawer :exports both :shebang "#!/usr/bin/env ipython\n# -*- coding: utf-8 -*-\n\n" :tangle yes
+
+df_list = [  s2102_sylls_1st_freq_min_2,  ]
+df_info = [ "s2102_sylls_1st_freq_min_2", ]
+df_head = 12
+df_tail = 12
+
+df_checkup_bulk( df_list=df_list, df_info=df_info, df_head=df_head, df_tail=df_tail, )
+
+    #+END_SRC
+
+    #+RESULTS:
+    :RESULTS:
+    # Out[80]:
+    # output
+    : ===========================================================================
+    : s2102_sylls_1st_freq_min_2
+    : ===========================================================================
+    : idx count: 2178
+    : row count: 2  ['SYLL', 'COUNT']
+    : ---------------------------------------------------------------------------
+    :    SYLL      COUNT
+    : 0    po  212996121
+    : 1     o  159914508
+    : 2    za  127097688
+    : 3    wy  103188310
+    : 4     u  100003662
+    : 5    na   84445661
+    : 6    do   74531316
+    : 7     a   68127822
+    : 8    mo   62894173
+    : 9   pro   52193717
+    : 10  któ   51542820
+    : 11   te   51458465
+    : ---------------------------------------------------------------------------
+    :         SYLL  COUNT
+    : 2166   chlew  11613
+    : 2167     bec  11607
+    : 2168    gwoź  11587
+    : 2169     red  11548
+    : 2170   schow  11544
+    : 2171     łez  11536
+    : 2172     pha  11536
+    : 2173    ptac  11532
+    : 2174    spóź  11531
+    : 2175  szczaw  11508
+    : 2176     żwi  11478
+    : 2177   krost  11460
+    :
+    :END:
+
+*** DONE Checkup =s2102_sylls_1st_freq_min_1=
+
+    #+BEGIN_SRC ipython :session *iPython* :eval yes :results raw drawer :exports both :shebang "#!/usr/bin/env ipython\n# -*- coding: utf-8 -*-\n\n" :tangle yes
+
+df_list = [  s2102_sylls_1st_freq_min_1,  ]
+df_info = [ "s2102_sylls_1st_freq_min_1", ]
+df_head = 12
+df_tail = 12
+
+df_checkup_bulk( df_list=df_list, df_info=df_info, df_head=df_head, df_tail=df_tail, )
+
+    #+END_SRC
+
+    #+RESULTS:
+    :RESULTS:
+    # Out[81]:
+    # output
+    : ===========================================================================
+    : s2102_sylls_1st_freq_min_1
+    : ===========================================================================
+    : idx count: 4477
+    : row count: 2  ['SYLL', 'COUNT']
+    : ---------------------------------------------------------------------------
+    :    SYLL      COUNT
+    : 0    po  246253294
+    : 1     w  240721554
+    : 2    na  235483957
+    : 3     o  211008068
+    : 4     i  205223831
+    : 5    do  168378078
+    : 6   nie  166322355
+    : 7    za  155246607
+    : 8     z  133291550
+    : 9     a  125362095
+    : 10  się  121537472
+    : 11   to  110549382
+    : ---------------------------------------------------------------------------
+    :         SYLL  COUNT
+    : 4465     opp  11512
+    : 4466     ppc  11508
+    : 4467  szczaw  11508
+    : 4468    bral  11504
+    : 4469      hg  11501
+    : 4470     psv  11494
+    : 4471    xxii  11492
+    : 4472     żwi  11478
+    : 4473   grześ  11477
+    : 4474     ceł  11462
+    : 4475   krost  11460
+    : 4476    stój  11459
+    :
+    :END:
+
+*** DONE Checkup =s2102_sylls_ANY_freq_min_1=
+
+    #+BEGIN_SRC ipython :session *iPython* :eval yes :results raw drawer :exports both :shebang "#!/usr/bin/env ipython\n# -*- coding: utf-8 -*-\n\n" :tangle yes
+
+df_list = [  s2102_sylls_ANY_freq_min_1,  ]
+df_info = [ "s2102_sylls_ANY_freq_min_1", ]
+df_head = 12
+df_tail = 12
+
+df_checkup_bulk( df_list=df_list, df_info=df_info, df_head=df_head, df_tail=df_tail, )
+
+    #+END_SRC
+
+    #+RESULTS:
+    :RESULTS:
+    # Out[82]:
+    # output
+    : ===========================================================================
+    : s2102_sylls_ANY_freq_min_1
+    : ===========================================================================
+    : idx count: 7072
+    : row count: 2  ['SYLL', 'COUNT']
+    : ---------------------------------------------------------------------------
+    :    SYLL      COUNT
+    : 0   nie  330386171
+    : 1    na  328495489
+    : 2    po  287191469
+    : 3     w  240721554
+    : 4     o  212152294
+    : 5     i  208880586
+    : 6    do  202590909
+    : 7    za  183476380
+    : 8    to  165489968
+    : 9    go  164785362
+    : 10   ko  150752001
+    : 11    z  133291550
+    : ---------------------------------------------------------------------------
+    :        SYLL  COUNT
+    : 7060   bral  11504
+    : 7061     hg  11501
+    : 7062    eko  11497
+    : 7063    psv  11494
+    : 7064   xxii  11492
+    : 7065    żwi  11478
+    : 7066  grześ  11477
+    : 7067   riel  11475
+    : 7068  iunkt  11473
+    : 7069    ceł  11462
+    : 7070  krost  11460
+    : 7071    lce  11454
+    :
+    :END:
+
+*** DONE Checkup =words= from ~s2102_words_jdo_nall_unique~
+
+    #+BEGIN_SRC ipython :session *iPython* :eval yes :results raw drawer :exports both :shebang "#!/usr/bin/env ipython\n# -*- coding: utf-8 -*-\n\n" :tangle yes
+
+df_list = [  s2102_words_jdo_nall_unique,  ]
+df_info = [ "s2102_words_jdo_nall_unique", ]
+df_head = 12
+df_tail = 12
+
+df_checkup_bulk( df_list=df_list, df_info=df_info, df_head=df_head, df_tail=df_tail, )
+
+    #+END_SRC
+
+    #+RESULTS:
+    :RESULTS:
+    # Out[83]:
+    # output
+    : ===========================================================================
+    : s2102_words_jdo_nall_unique
+    : ===========================================================================
+    : idx count: 160
+    : row count: 20  ['Unnamed: 0', 'WORD_V', 'rodzaj', 'PoS_V', 'PoS_%_ANSWERS_V', 'LETTER_CNT_V', 'SYLL_CNT_V', 'FIRST_SYLL_CNT_V', 'FIRST_SYLLL', 'SUFF_verbs', 'OLD_20_Wuggy_V', 'OLD20_JN_V', 'AVG_V', 'SD_V', 'T_TEST_3_V', 'P_VALUE_V', 'CONFI_V', 'Unnamed: 16', 'Acceptance%', 'Acceptance_mean']
+    : ---------------------------------------------------------------------------
+    :     Unnamed: 0    WORD_V rodzaj PoS_V  PoS_%_ANSWERS_V  LETTER_CNT_V  SYLL_CNT_V  FIRST_SYLL_CNT_V FIRST_SYLLL SUFF_verbs  OLD_20_Wuggy_V  OLD20_JN_V     AVG_V      SD_V  T_TEST_3_V     P_VALUE_V   CONFI_V  Unnamed: 16  Acceptance%  Acceptance_mean
+    : 0            0   ciltrum      n  NOUN             93.8             7           2               NaN         cil      .*um$            2.65    2.333333  1.500000  0.816497   -7.348469  2.411835e-06 -1.935080    -1.064920            1                1
+    : 1            1   celbrum      n  NOUN             90.0             7           2               NaN         cel      .*um$            2.80    2.428571  1.800000  0.894427   -6.000000  8.979235e-06 -1.618605    -0.781395            1                1
+    : 2            2    chósło      n  NOUN             85.0             6           2               NaN         chó      .*ło$            2.75    2.428571  2.400000  1.142481   -2.348644  2.981502e-02 -1.134698    -0.065302            1                1
+    : 3            3   celznum      n  NOUN             82.4             7           2               NaN         cel      .*um$            2.95    2.571429  1.647059  0.701888   -7.947590  6.038450e-07 -1.713819    -0.992064            1                1
+    : 4            4   celfrum      n  NOUN             95.2             7           2               NaN         cel      .*um$            2.80    2.619048  1.761905  0.943650   -6.012465  7.048282e-06 -1.667640    -0.808551            1                1
+    : 5            5   celchum      n  NOUN             95.2             7           2               NaN         cel      .*um$            2.80    2.666667  1.761905  0.943650   -6.012465  7.048282e-06 -1.667640    -0.808551            1                1
+    : 6            6   celtkum      n  NOUN             80.0             7           2               NaN        celt      .*um$            2.90    2.666667  1.900000  1.119210   -4.395376  3.109725e-04 -1.623807    -0.576193            1                1
+    : 7            7   celkrum      n  NOUN             80.8             7           2               NaN         cel      .*um$            2.90    2.714286  1.961538  1.076319   -4.919673  4.588510e-05 -1.473196    -0.603727            1                1
+    : 8            8  tłowiwko      n  NOUN             88.5             8           3               NaN         tło      .*ko$            2.95    2.714286  2.230769  1.031802   -3.801430  8.235553e-04 -1.185985    -0.352477            1                1
+    : 9            9  gnowiwko      n  NOUN            100.0             8           3               NaN         gno      .*ko$            3.00    2.761905  2.421053  1.017393   -2.480432  2.323299e-02 -1.069315    -0.088580            1                1
+    : 10          10  młowiwko      n  NOUN             89.5             8           3               NaN         mło      .*ko$            2.90    2.761905  2.421053  1.169795   -2.157277  4.474830e-02 -1.142771    -0.015124            1                1
+    : 11          11   łudioro      n  NOUN             84.2             7           3               NaN          łu      .*ro$            2.90    2.809524  1.421053  0.606977  -11.338934  1.249517e-09 -1.871501    -1.286394            1                1
+    : ---------------------------------------------------------------------------
+    :      Unnamed: 0    WORD_V rodzaj PoS_V  PoS_%_ANSWERS_V  LETTER_CNT_V  SYLL_CNT_V  FIRST_SYLL_CNT_V FIRST_SYLLL SUFF_verbs  OLD_20_Wuggy_V  OLD20_JN_V     AVG_V      SD_V  T_TEST_3_V     P_VALUE_V   CONFI_V  Unnamed: 16  Acceptance%  Acceptance_mean
+    : 148         153  ocpiadać    NaN  VERB       100.000000             8           2               NaN       ocpia      .*ać$            2.80    2.714286  2.315789  1.002920   -2.973722  8.136982e-03 -1.167602    -0.200819            1                1
+    : 149         154  zapumkić    NaN  VERB        89.500000             8           3               NaN          za      .*ić$            2.90    2.714286  2.473684  1.073334   -2.137411  4.653922e-02 -1.043646    -0.008985            1                1
+    : 150         155   gżąchyć    NaN  VERB        90.909091             7           2               NaN         gżą      .*yć$            3.00    2.761905  2.181818  0.873863   -3.105295  1.114965e-02 -1.405251    -0.231113            1                1
+    : 151         156  ocpiakać    NaN  VERB       100.000000             8           2               NaN       ocpia      .*ać$            2.85    2.761905  2.090909  0.831209   -3.627381  4.632631e-03 -1.467505    -0.350677            1                1
+    : 152         157  pozlodić    NaN  VERB       100.000000             8           3               NaN          po      .*ić$            2.80    2.761905  1.909091  0.700649   -5.163978  4.227812e-04 -1.561612    -0.620207            1                1
+    : 153         158  onzietać    NaN  VERB       100.000000             8           3               NaN          on      .*ać$            2.90    2.761905  2.363636  0.924416   -2.283148  4.554128e-02 -1.257395    -0.015332            1                1
+    : 154         159    cyśnyć    NaN  VERB        81.818182             6           2               NaN          cy      .*yć$            2.85    2.761905  2.272727  0.904534   -2.666667  2.362735e-02 -1.334947    -0.119598            1                1
+    : 155         160   lżąchyć    NaN  VERB       100.000000             7           2               NaN         lżą      .*yć$            2.90    2.761905  2.090909  0.831209   -3.627381  4.632631e-03 -1.467505    -0.350677            1                1
+    : 156         161    kyctić    NaN  VERB        90.909091             6           2               NaN         kyc      .*ić$            2.90    2.761905  1.363636  0.504525  -10.757057  8.111368e-07 -1.975308    -1.297419            1                1
+    : 157         162   nallnać    NaN  VERB       100.000000             7           3               NaN         nal      .*ać$            2.55    2.285714  1.923077  0.954074   -4.069813  1.554126e-03 -1.653464    -0.500382            1                1
+    : 158         163   nallbać    NaN  VERB        90.000000             7           3               NaN         nal      .*ać$            2.70    2.428571       NaN  0.850696   -6.571287  2.726994e-06 -1.648138    -0.851862            1                1
+    : 159         164   nallmać    NaN  VERB        90.500000             7           3               NaN         nal      .*ać$            2.70    2.428571       NaN  1.354006   -2.256304  3.540223e-02 -1.283003    -0.050330            1                1
+    :
+    :END:
+
+*** DONE Checkup =words= from ~s2102_words_jdo_orig_unique~
+
+    #+BEGIN_SRC ipython :session *iPython* :eval yes :results raw drawer :exports both :shebang "#!/usr/bin/env ipython\n# -*- coding: utf-8 -*-\n\n" :tangle yes
+
+df_list = [  s2102_words_jdo_orig_unique,  ]
+df_info = [ "s2102_words_jdo_orig_unique", ]
+df_head = 12
+df_tail = 12
+
+df_checkup_bulk( df_list=df_list, df_info=df_info, df_head=df_head, df_tail=df_tail, )
+
+    #+END_SRC
+
+    #+RESULTS:
+    :RESULTS:
+    # Out[84]:
+    # output
+    : ===========================================================================
+    : s2102_words_jdo_orig_unique
+    : ===========================================================================
+    : idx count: 157
+    : row count: 20  ['Unnamed: 0', 'WORD_V', 'rodzaj', 'PoS_V', 'PoS_%_ANSWERS_V', 'LETTER_CNT_V', 'SYLL_CNT_V', 'FIRST_SYLL_CNT_V', 'FIRST_SYLLL', 'SUFF_verbs', 'OLD_20_Wuggy_V', 'OLD20_JN_V', 'AVG_V', 'SD_V', 'T_TEST_3_V', 'P_VALUE_V', 'CONFI_V', 'Unnamed: 16', 'Acceptance%', 'Acceptance_mean']
+    : ---------------------------------------------------------------------------
+    :     Unnamed: 0    WORD_V rodzaj PoS_V  PoS_%_ANSWERS_V  LETTER_CNT_V  SYLL_CNT_V  FIRST_SYLL_CNT_V FIRST_SYLLL SUFF_verbs  OLD_20_Wuggy_V  OLD20_JN_V     AVG_V      SD_V  T_TEST_3_V     P_VALUE_V   CONFI_V  Unnamed: 16  Acceptance%  Acceptance_mean
+    : 0            0   ciltrum      n  NOUN             93.8             7           2               NaN         cil      .*um$            2.65    2.333333  1.500000  0.816497   -7.348469  2.411835e-06 -1.935080    -1.064920            1                1
+    : 1            1   celbrum      n  NOUN             90.0             7           2               NaN         cel      .*um$            2.80    2.428571  1.800000  0.894427   -6.000000  8.979235e-06 -1.618605    -0.781395            1                1
+    : 2            2    chósło      n  NOUN             85.0             6           2               NaN         chó      .*ło$            2.75    2.428571  2.400000  1.142481   -2.348644  2.981502e-02 -1.134698    -0.065302            1                1
+    : 3            3   celznum      n  NOUN             82.4             7           2               NaN         cel      .*um$            2.95    2.571429  1.647059  0.701888   -7.947590  6.038450e-07 -1.713819    -0.992064            1                1
+    : 4            4   celfrum      n  NOUN             95.2             7           2               NaN         cel      .*um$            2.80    2.619048  1.761905  0.943650   -6.012465  7.048282e-06 -1.667640    -0.808551            1                1
+    : 5            5   celchum      n  NOUN             95.2             7           2               NaN         cel      .*um$            2.80    2.666667  1.761905  0.943650   -6.012465  7.048282e-06 -1.667640    -0.808551            1                1
+    : 6            6   celtkum      n  NOUN             80.0             7           2               NaN        celt      .*um$            2.90    2.666667  1.900000  1.119210   -4.395376  3.109725e-04 -1.623807    -0.576193            1                1
+    : 7            7   celkrum      n  NOUN             80.8             7           2               NaN         cel      .*um$            2.90    2.714286  1.961538  1.076319   -4.919673  4.588510e-05 -1.473196    -0.603727            1                1
+    : 8            8  tłowiwko      n  NOUN             88.5             8           3               NaN         tło      .*ko$            2.95    2.714286  2.230769  1.031802   -3.801430  8.235553e-04 -1.185985    -0.352477            1                1
+    : 9            9  gnowiwko      n  NOUN            100.0             8           3               NaN         gno      .*ko$            3.00    2.761905  2.421053  1.017393   -2.480432  2.323299e-02 -1.069315    -0.088580            1                1
+    : 10          10  młowiwko      n  NOUN             89.5             8           3               NaN         mło      .*ko$            2.90    2.761905  2.421053  1.169795   -2.157277  4.474830e-02 -1.142771    -0.015124            1                1
+    : 11          11   łudioro      n  NOUN             84.2             7           3               NaN          łu      .*ro$            2.90    2.809524  1.421053  0.606977  -11.338934  1.249517e-09 -1.871501    -1.286394            1                1
+    : ---------------------------------------------------------------------------
+    :      Unnamed: 0    WORD_V rodzaj PoS_V  PoS_%_ANSWERS_V  LETTER_CNT_V  SYLL_CNT_V  FIRST_SYLL_CNT_V FIRST_SYLLL SUFF_verbs  OLD_20_Wuggy_V  OLD20_JN_V     AVG_V      SD_V  T_TEST_3_V     P_VALUE_V   CONFI_V  Unnamed: 16  Acceptance%  Acceptance_mean
+    : 145         150  posyścać    NaN  VERB       100.000000             8           4               NaN          po      .*ać$            2.85    2.714286  2.052632  0.970320   -4.255796  4.755068e-04 -1.415048    -0.479689            1                1
+    : 146         151   osorsać    NaN  VERB       100.000000             7           3               NaN           o      .*ać$            2.95    2.714286  2.473684  1.020263   -2.248595  3.730029e-02 -1.018067    -0.034565            1                1
+    : 147         152  ocpiatać    NaN  VERB       100.000000             8           2               NaN       ocpia      .*ać$            2.80    2.714286  2.000000  0.942809   -4.623311  2.111495e-04 -1.454419    -0.545581            1                1
+    : 148         153  ocpiadać    NaN  VERB       100.000000             8           2               NaN       ocpia      .*ać$            2.80    2.714286  2.315789  1.002920   -2.973722  8.136982e-03 -1.167602    -0.200819            1                1
+    : 149         154  zapumkić    NaN  VERB        89.500000             8           3               NaN          za      .*ić$            2.90    2.714286  2.473684  1.073334   -2.137411  4.653922e-02 -1.043646    -0.008985            1                1
+    : 150         155   gżąchyć    NaN  VERB        90.909091             7           2               NaN         gżą      .*yć$            3.00    2.761905  2.181818  0.873863   -3.105295  1.114965e-02 -1.405251    -0.231113            1                1
+    : 151         156  ocpiakać    NaN  VERB       100.000000             8           2               NaN       ocpia      .*ać$            2.85    2.761905  2.090909  0.831209   -3.627381  4.632631e-03 -1.467505    -0.350677            1                1
+    : 152         157  pozlodić    NaN  VERB       100.000000             8           3               NaN          po      .*ić$            2.80    2.761905  1.909091  0.700649   -5.163978  4.227812e-04 -1.561612    -0.620207            1                1
+    : 153         158  onzietać    NaN  VERB       100.000000             8           3               NaN          on      .*ać$            2.90    2.761905  2.363636  0.924416   -2.283148  4.554128e-02 -1.257395    -0.015332            1                1
+    : 154         159    cyśnyć    NaN  VERB        81.818182             6           2               NaN          cy      .*yć$            2.85    2.761905  2.272727  0.904534   -2.666667  2.362735e-02 -1.334947    -0.119598            1                1
+    : 155         160   lżąchyć    NaN  VERB       100.000000             7           2               NaN         lżą      .*yć$            2.90    2.761905  2.090909  0.831209   -3.627381  4.632631e-03 -1.467505    -0.350677            1                1
+    : 156         161    kyctić    NaN  VERB        90.909091             6           2               NaN         kyc      .*ić$            2.90    2.761905  1.363636  0.504525  -10.757057  8.111368e-07 -1.975308    -1.297419            1                1
+    :
+    :END:
+
+*** DONE Diff =words= in DataFrames ~s2102_words_jdo_nall_unique~ and ~s2102_words_jdo_orig_unique~
+
+    #+BEGIN_SRC ipython :session *iPython* :eval yes :results raw drawer :exports both :shebang "#!/usr/bin/env ipython\n# -*- coding: utf-8 -*-\n\n" :tangle yes
+
+tmp_merged = pd.DataFrame()
+
+tmp_merged = pd.merge(
+    left        = s2102_words_jdo_nall_unique[[ "WORD_V" ]],
+    right       = s2102_words_jdo_orig_unique[[ "WORD_V" ]],
+    how         = "outer",
+    left_on     = "WORD_V",
+    right_on    = "WORD_V",
+    indicator   = True,
+    suffixes    = ("_jdo", "_mzf"),
+)
+
+print( "="*75 )
+print( tmp_merged[ tmp_merged["_merge"] == "right_only" ] )
+print( "="*75 )
+print( tmp_merged[ tmp_merged["_merge"] == "left_only" ] )
+
+    #+END_SRC
+
+    #+RESULTS:
+    :RESULTS:
+    # Out[85]:
+    # output
+    : ===========================================================================
+    : Empty DataFrame
+    : Columns: [WORD_V, _merge]
+    : Index: []
+    : ===========================================================================
+    :       WORD_V     _merge
+    : 157  nallnać  left_only
+    : 158  nallbać  left_only
+    : 159  nallmać  left_only
+    :
+    :END:
+
+** Proc 03: Merge
+*** DONE Prelude
+
+    #+BEGIN_SRC ipython :session *iPython* :eval yes :results raw drawer :exports both :shebang "#!/usr/bin/env ipython\n# -*- coding: utf-8 -*-\n\n" :tangle yes
+
+s2102_words_jdo_nall_unique_sylls = s2102_words_jdo_nall_unique.copy()
+s2102_words_jdo_orig_unique_sylls = s2102_words_jdo_orig_unique.copy()
+
+    #+END_SRC
+
+    #+RESULTS:
+    :RESULTS:
+    # Out[86]:
+    :END:
+
+*** DONE Merge =s2102_words_jdo_nall_unique= with =s2102_sylls_1st_freq_min_2=
+
+    #+BEGIN_SRC ipython :session *iPython* :eval yes :results raw drawer :exports both :shebang "#!/usr/bin/env ipython\n# -*- coding: utf-8 -*-\n\n" :tangle yes
+
+s2102_words_jdo_nall_unique_sylls = pd.merge(
+    left        = s2102_words_jdo_nall_unique_sylls,
+    right       = s2102_sylls_1st_freq_min_2,
+    how         = "left",
+    left_on     = "FIRST_SYLLL",
+    right_on    = "SYLL",
+    suffixes    = ("_jdo", "_1st_freq_min_2"),
+    # validate    = "one_to_many",
+)
+
+print( s2102_words_jdo_nall_unique_sylls.shape )
+
+    #+END_SRC
+
+    #+RESULTS:
+    :RESULTS:
+    # Out[87]:
+    # output
+    : (160, 22)
+    :
+    :END:
+
+*** DONE Merge =s2102_words_jdo_nall_unique= with =s2102_sylls_1st_freq_min_1=
+
+    #+BEGIN_SRC ipython :session *iPython* :eval yes :results raw drawer :exports both :shebang "#!/usr/bin/env ipython\n# -*- coding: utf-8 -*-\n\n" :tangle yes
+
+s2102_words_jdo_nall_unique_sylls = pd.merge(
+    left        = s2102_words_jdo_nall_unique_sylls,
+    right       = s2102_sylls_1st_freq_min_1,
+    how         = "left",
+    left_on     = "FIRST_SYLLL",
+    right_on    = "SYLL",
+    suffixes    = ("_jdo", "_1st_freq_min_1"),
+    # validate    = "one_to_many",
+)
+
+print( s2102_words_jdo_nall_unique_sylls.shape )
+
+    #+END_SRC
+
+    #+RESULTS:
+    :RESULTS:
+    # Out[88]:
+    # output
+    : (160, 24)
+    :
+    :END:
+
+*** DONE Merge =s2102_words_jdo_nall_unique= with =s2102_sylls_ANY_freq_min_1=
+
+    #+BEGIN_SRC ipython :session *iPython* :eval yes :results raw drawer :exports both :shebang "#!/usr/bin/env ipython\n# -*- coding: utf-8 -*-\n\n" :tangle yes
+
+s2102_words_jdo_nall_unique_sylls = pd.merge(
+    left        = s2102_words_jdo_nall_unique_sylls,
+    right       = s2102_sylls_ANY_freq_min_1,
+    how         = "left",
+    left_on     = "FIRST_SYLLL",
+    right_on    = "SYLL",
+    suffixes    = ("_jdo", "_ANY_freq_min_1"),
+    # validate    = "one_to_many",
+)
+
+print( s2102_words_jdo_nall_unique_sylls.shape )
+
+    #+END_SRC
+
+    #+RESULTS:
+    :RESULTS:
+    # Out[89]:
+    # output
+    : (160, 26)
+    :
+    :END:
+
+*** DONE Merge =s2102_words_jdo_orig_unique= with =s2102_sylls_1st_freq_min_2=
+
+    #+BEGIN_SRC ipython :session *iPython* :eval yes :results raw drawer :exports both :shebang "#!/usr/bin/env ipython\n# -*- coding: utf-8 -*-\n\n" :tangle yes
+
+s2102_words_jdo_orig_unique_sylls = pd.merge(
+    left        = s2102_words_jdo_orig_unique_sylls,
+    right       = s2102_sylls_1st_freq_min_2,
+    how         = "left",
+    left_on     = "FIRST_SYLLL",
+    right_on    = "SYLL",
+    suffixes    = ("_jdo", "_1st_freq_min_2"),
+    # validate    = "one_to_many",
+)
+
+print( s2102_words_jdo_orig_unique_sylls.shape )
+
+    #+END_SRC
+
+    #+RESULTS:
+    :RESULTS:
+    # Out[90]:
+    # output
+    : (157, 22)
+    :
+    :END:
+
+*** DONE Merge =s2102_words_jdo_orig_unique= with =s2102_sylls_1st_freq_min_1=
+
+    #+BEGIN_SRC ipython :session *iPython* :eval yes :results raw drawer :exports both :shebang "#!/usr/bin/env ipython\n# -*- coding: utf-8 -*-\n\n" :tangle yes
+
+s2102_words_jdo_orig_unique_sylls = pd.merge(
+    left        = s2102_words_jdo_orig_unique_sylls,
+    right       = s2102_sylls_1st_freq_min_1,
+    how         = "left",
+    left_on     = "FIRST_SYLLL",
+    right_on    = "SYLL",
+    suffixes    = ("_jdo", "_1st_freq_min_1"),
+    # validate    = "one_to_many",
+)
+
+print( s2102_words_jdo_orig_unique_sylls.shape )
+
+    #+END_SRC
+
+    #+RESULTS:
+    :RESULTS:
+    # Out[91]:
+    # output
+    : (157, 24)
+    :
+    :END:
+
+*** DONE Merge =s2102_words_jdo_orig_unique= with =s2102_sylls_ANY_freq_min_1=
+
+    #+BEGIN_SRC ipython :session *iPython* :eval yes :results raw drawer :exports both :shebang "#!/usr/bin/env ipython\n# -*- coding: utf-8 -*-\n\n" :tangle yes
+
+s2102_words_jdo_orig_unique_sylls = pd.merge(
+    left        = s2102_words_jdo_orig_unique_sylls,
+    right       = s2102_sylls_ANY_freq_min_1,
+    how         = "left",
+    left_on     = "FIRST_SYLLL",
+    right_on    = "SYLL",
+    suffixes    = ("_jdo", "_ANY_freq_min_1"),
+    # validate    = "one_to_many",
+)
+
+print( s2102_words_jdo_orig_unique_sylls.shape )
+
+    #+END_SRC
+
+    #+RESULTS:
+    :RESULTS:
+    # Out[92]:
+    # output
+    : (157, 26)
+    :
+    :END:
+
+*** DONE Checkup =words= from ~s2102_words_jdo_nall_unique_sylls~
+
+    #+BEGIN_SRC ipython :session *iPython* :eval yes :results raw drawer :exports both :shebang "#!/usr/bin/env ipython\n# -*- coding: utf-8 -*-\n\n" :tangle yes
+
+df_list = [  s2102_words_jdo_nall_unique_sylls,  ]
+df_info = [ "s2102_words_jdo_nall_unique_sylls", ]
+df_head = 12
+df_tail = 12
+
+df_checkup_bulk( df_list=df_list, df_info=df_info, df_head=df_head, df_tail=df_tail, )
+
+    #+END_SRC
+
+    #+RESULTS:
+    :RESULTS:
+    # Out[93]:
+    # output
+    : ===========================================================================
+    : s2102_words_jdo_nall_unique_sylls
+    : ===========================================================================
+    : idx count: 160
+    : row count: 26  ['Unnamed: 0', 'WORD_V', 'rodzaj', 'PoS_V', 'PoS_%_ANSWERS_V', 'LETTER_CNT_V', 'SYLL_CNT_V', 'FIRST_SYLL_CNT_V', 'FIRST_SYLLL', 'SUFF_verbs', 'OLD_20_Wuggy_V', 'OLD20_JN_V', 'AVG_V', 'SD_V', 'T_TEST_3_V', 'P_VALUE_V', 'CONFI_V', 'Unnamed: 16', 'Acceptance%', 'Acceptance_mean', 'SYLL_jdo', 'COUNT_jdo', 'SYLL_1st_freq_min_1', 'COUNT_1st_freq_min_1', 'SYLL', 'COUNT']
+    : ---------------------------------------------------------------------------
+    :     Unnamed: 0    WORD_V rodzaj PoS_V  PoS_%_ANSWERS_V  LETTER_CNT_V  SYLL_CNT_V  FIRST_SYLL_CNT_V FIRST_SYLLL SUFF_verbs  ...   CONFI_V  Unnamed: 16  Acceptance%  Acceptance_mean  SYLL_jdo  COUNT_jdo  SYLL_1st_freq_min_1  COUNT_1st_freq_min_1  SYLL      COUNT
+    : 0            0   ciltrum      n  NOUN             93.8             7           2               NaN         cil      .*um$  ... -1.935080    -1.064920            1                1       NaN        NaN                  NaN                   NaN   cil    29927.0
+    : 1            1   celbrum      n  NOUN             90.0             7           2               NaN         cel      .*um$  ... -1.618605    -0.781395            1                1       cel   349254.0                  cel             1016856.0   cel  1036591.0
+    : 2            2    chósło      n  NOUN             85.0             6           2               NaN         chó      .*ło$  ... -1.134698    -0.065302            1                1       chó   104048.0                  chó              104048.0   chó   104048.0
+    : 3            3   celznum      n  NOUN             82.4             7           2               NaN         cel      .*um$  ... -1.713819    -0.992064            1                1       cel   349254.0                  cel             1016856.0   cel  1036591.0
+    : 4            4   celfrum      n  NOUN             95.2             7           2               NaN         cel      .*um$  ... -1.667640    -0.808551            1                1       cel   349254.0                  cel             1016856.0   cel  1036591.0
+    : 5            5   celchum      n  NOUN             95.2             7           2               NaN         cel      .*um$  ... -1.667640    -0.808551            1                1       cel   349254.0                  cel             1016856.0   cel  1036591.0
+    : 6            6   celtkum      n  NOUN             80.0             7           2               NaN        celt      .*um$  ... -1.623807    -0.576193            1                1       NaN        NaN                  NaN                   NaN   NaN        NaN
+    : 7            7   celkrum      n  NOUN             80.8             7           2               NaN         cel      .*um$  ... -1.473196    -0.603727            1                1       cel   349254.0                  cel             1016856.0   cel  1036591.0
+    : 8            8  tłowiwko      n  NOUN             88.5             8           3               NaN         tło      .*ko$  ... -1.185985    -0.352477            1                1       tło    16428.0                  tło              104308.0   tło   586640.0
+    : 9            9  gnowiwko      n  NOUN            100.0             8           3               NaN         gno      .*ko$  ... -1.069315    -0.088580            1                1       gno    18052.0                  gno               18052.0   gno  1013703.0
+    : 10          10  młowiwko      n  NOUN             89.5             8           3               NaN         mło      .*ko$  ... -1.142771    -0.015124            1                1       mło  4336191.0                  mło             4336191.0   mło  4336191.0
+    : 11          11   łudioro      n  NOUN             84.2             7           3               NaN          łu      .*ro$  ... -1.871501    -1.286394            1                1        łu   564218.0                   łu              564218.0    łu  8568449.0
+    :
+    : [12 rows x 26 columns]
+    : ---------------------------------------------------------------------------
+    :      Unnamed: 0    WORD_V rodzaj PoS_V  PoS_%_ANSWERS_V  LETTER_CNT_V  SYLL_CNT_V  FIRST_SYLL_CNT_V FIRST_SYLLL SUFF_verbs  ...   CONFI_V  Unnamed: 16  Acceptance%  Acceptance_mean  SYLL_jdo    COUNT_jdo  SYLL_1st_freq_min_1  COUNT_1st_freq_min_1  SYLL        COUNT
+    : 148         153  ocpiadać    NaN  VERB       100.000000             8           2               NaN       ocpia      .*ać$  ... -1.167602    -0.200819            1                1       NaN          NaN                  NaN                   NaN   NaN          NaN
+    : 149         154  zapumkić    NaN  VERB        89.500000             8           3               NaN          za      .*ić$  ... -1.043646    -0.008985            1                1        za  127097688.0                   za           155246607.0    za  183476380.0
+    : 150         155   gżąchyć    NaN  VERB        90.909091             7           2               NaN         gżą      .*yć$  ... -1.405251    -0.231113            1                1       NaN          NaN                  NaN                   NaN   NaN          NaN
+    : 151         156  ocpiakać    NaN  VERB       100.000000             8           2               NaN       ocpia      .*ać$  ... -1.467505    -0.350677            1                1       NaN          NaN                  NaN                   NaN   NaN          NaN
+    : 152         157  pozlodić    NaN  VERB       100.000000             8           3               NaN          po      .*ić$  ... -1.561612    -0.620207            1                1        po  212996121.0                   po           246253294.0    po  287191469.0
+    : 153         158  onzietać    NaN  VERB       100.000000             8           3               NaN          on      .*ać$  ... -1.257395    -0.015332            1                1        on     569922.0                   on             5825023.0    on    5994603.0
+    : 154         159    cyśnyć    NaN  VERB        81.818182             6           2               NaN          cy      .*yć$  ... -1.334947    -0.119598            1                1        cy    2929813.0                   cy             2972271.0    cy   44819201.0
+    : 155         160   lżąchyć    NaN  VERB       100.000000             7           2               NaN         lżą      .*yć$  ... -1.467505    -0.350677            1                1       NaN          NaN                  NaN                   NaN   NaN          NaN
+    : 156         161    kyctić    NaN  VERB        90.909091             6           2               NaN         kyc      .*ić$  ... -1.975308    -1.297419            1                1       NaN          NaN                  NaN                   NaN   NaN          NaN
+    : 157         162   nallnać    NaN  VERB       100.000000             7           3               NaN         nal      .*ać$  ... -1.653464    -0.500382            1                1       NaN          NaN                  NaN                   NaN   nal    4471571.0
+    : 158         163   nallbać    NaN  VERB        90.000000             7           3               NaN         nal      .*ać$  ... -1.648138    -0.851862            1                1       NaN          NaN                  NaN                   NaN   nal    4471571.0
+    : 159         164   nallmać    NaN  VERB        90.500000             7           3               NaN         nal      .*ać$  ... -1.283003    -0.050330            1                1       NaN          NaN                  NaN                   NaN   nal    4471571.0
+    :
+    : [12 rows x 26 columns]
+    :
+    :END:
+
+*** DONE Checkup =words= from ~s2102_words_jdo_orig_unique_sylls~
+
+    #+BEGIN_SRC ipython :session *iPython* :eval yes :results raw drawer :exports both :shebang "#!/usr/bin/env ipython\n# -*- coding: utf-8 -*-\n\n" :tangle yes
+
+df_list = [  s2102_words_jdo_orig_unique_sylls,  ]
+df_info = [ "s2102_words_jdo_orig_unique_sylls", ]
+df_head = 12
+df_tail = 12
+
+df_checkup_bulk( df_list=df_list, df_info=df_info, df_head=df_head, df_tail=df_tail, )
+
+    #+END_SRC
+
+    #+RESULTS:
+    :RESULTS:
+    # Out[94]:
+    # output
+    : ===========================================================================
+    : s2102_words_jdo_orig_unique_sylls
+    : ===========================================================================
+    : idx count: 157
+    : row count: 26  ['Unnamed: 0', 'WORD_V', 'rodzaj', 'PoS_V', 'PoS_%_ANSWERS_V', 'LETTER_CNT_V', 'SYLL_CNT_V', 'FIRST_SYLL_CNT_V', 'FIRST_SYLLL', 'SUFF_verbs', 'OLD_20_Wuggy_V', 'OLD20_JN_V', 'AVG_V', 'SD_V', 'T_TEST_3_V', 'P_VALUE_V', 'CONFI_V', 'Unnamed: 16', 'Acceptance%', 'Acceptance_mean', 'SYLL_jdo', 'COUNT_jdo', 'SYLL_1st_freq_min_1', 'COUNT_1st_freq_min_1', 'SYLL', 'COUNT']
+    : ---------------------------------------------------------------------------
+    :     Unnamed: 0    WORD_V rodzaj PoS_V  PoS_%_ANSWERS_V  LETTER_CNT_V  SYLL_CNT_V  FIRST_SYLL_CNT_V FIRST_SYLLL SUFF_verbs  ...   CONFI_V  Unnamed: 16  Acceptance%  Acceptance_mean  SYLL_jdo  COUNT_jdo  SYLL_1st_freq_min_1  COUNT_1st_freq_min_1  SYLL      COUNT
+    : 0            0   ciltrum      n  NOUN             93.8             7           2               NaN         cil      .*um$  ... -1.935080    -1.064920            1                1       NaN        NaN                  NaN                   NaN   cil    29927.0
+    : 1            1   celbrum      n  NOUN             90.0             7           2               NaN         cel      .*um$  ... -1.618605    -0.781395            1                1       cel   349254.0                  cel             1016856.0   cel  1036591.0
+    : 2            2    chósło      n  NOUN             85.0             6           2               NaN         chó      .*ło$  ... -1.134698    -0.065302            1                1       chó   104048.0                  chó              104048.0   chó   104048.0
+    : 3            3   celznum      n  NOUN             82.4             7           2               NaN         cel      .*um$  ... -1.713819    -0.992064            1                1       cel   349254.0                  cel             1016856.0   cel  1036591.0
+    : 4            4   celfrum      n  NOUN             95.2             7           2               NaN         cel      .*um$  ... -1.667640    -0.808551            1                1       cel   349254.0                  cel             1016856.0   cel  1036591.0
+    : 5            5   celchum      n  NOUN             95.2             7           2               NaN         cel      .*um$  ... -1.667640    -0.808551            1                1       cel   349254.0                  cel             1016856.0   cel  1036591.0
+    : 6            6   celtkum      n  NOUN             80.0             7           2               NaN        celt      .*um$  ... -1.623807    -0.576193            1                1       NaN        NaN                  NaN                   NaN   NaN        NaN
+    : 7            7   celkrum      n  NOUN             80.8             7           2               NaN         cel      .*um$  ... -1.473196    -0.603727            1                1       cel   349254.0                  cel             1016856.0   cel  1036591.0
+    : 8            8  tłowiwko      n  NOUN             88.5             8           3               NaN         tło      .*ko$  ... -1.185985    -0.352477            1                1       tło    16428.0                  tło              104308.0   tło   586640.0
+    : 9            9  gnowiwko      n  NOUN            100.0             8           3               NaN         gno      .*ko$  ... -1.069315    -0.088580            1                1       gno    18052.0                  gno               18052.0   gno  1013703.0
+    : 10          10  młowiwko      n  NOUN             89.5             8           3               NaN         mło      .*ko$  ... -1.142771    -0.015124            1                1       mło  4336191.0                  mło             4336191.0   mło  4336191.0
+    : 11          11   łudioro      n  NOUN             84.2             7           3               NaN          łu      .*ro$  ... -1.871501    -1.286394            1                1        łu   564218.0                   łu              564218.0    łu  8568449.0
+    :
+    : [12 rows x 26 columns]
+    : ---------------------------------------------------------------------------
+    :      Unnamed: 0    WORD_V rodzaj PoS_V  PoS_%_ANSWERS_V  LETTER_CNT_V  SYLL_CNT_V  FIRST_SYLL_CNT_V FIRST_SYLLL SUFF_verbs  ...   CONFI_V  Unnamed: 16  Acceptance%  Acceptance_mean  SYLL_jdo    COUNT_jdo  SYLL_1st_freq_min_1  COUNT_1st_freq_min_1  SYLL        COUNT
+    : 145         150  posyścać    NaN  VERB       100.000000             8           4               NaN          po      .*ać$  ... -1.415048    -0.479689            1                1        po  212996121.0                   po           246253294.0    po  287191469.0
+    : 146         151   osorsać    NaN  VERB       100.000000             7           3               NaN           o      .*ać$  ... -1.018067    -0.034565            1                1         o  159914508.0                    o           211008068.0     o  212152294.0
+    : 147         152  ocpiatać    NaN  VERB       100.000000             8           2               NaN       ocpia      .*ać$  ... -1.454419    -0.545581            1                1       NaN          NaN                  NaN                   NaN   NaN          NaN
+    : 148         153  ocpiadać    NaN  VERB       100.000000             8           2               NaN       ocpia      .*ać$  ... -1.167602    -0.200819            1                1       NaN          NaN                  NaN                   NaN   NaN          NaN
+    : 149         154  zapumkić    NaN  VERB        89.500000             8           3               NaN          za      .*ić$  ... -1.043646    -0.008985            1                1        za  127097688.0                   za           155246607.0    za  183476380.0
+    : 150         155   gżąchyć    NaN  VERB        90.909091             7           2               NaN         gżą      .*yć$  ... -1.405251    -0.231113            1                1       NaN          NaN                  NaN                   NaN   NaN          NaN
+    : 151         156  ocpiakać    NaN  VERB       100.000000             8           2               NaN       ocpia      .*ać$  ... -1.467505    -0.350677            1                1       NaN          NaN                  NaN                   NaN   NaN          NaN
+    : 152         157  pozlodić    NaN  VERB       100.000000             8           3               NaN          po      .*ić$  ... -1.561612    -0.620207            1                1        po  212996121.0                   po           246253294.0    po  287191469.0
+    : 153         158  onzietać    NaN  VERB       100.000000             8           3               NaN          on      .*ać$  ... -1.257395    -0.015332            1                1        on     569922.0                   on             5825023.0    on    5994603.0
+    : 154         159    cyśnyć    NaN  VERB        81.818182             6           2               NaN          cy      .*yć$  ... -1.334947    -0.119598            1                1        cy    2929813.0                   cy             2972271.0    cy   44819201.0
+    : 155         160   lżąchyć    NaN  VERB       100.000000             7           2               NaN         lżą      .*yć$  ... -1.467505    -0.350677            1                1       NaN          NaN                  NaN                   NaN   NaN          NaN
+    : 156         161    kyctić    NaN  VERB        90.909091             6           2               NaN         kyc      .*ić$  ... -1.975308    -1.297419            1                1       NaN          NaN                  NaN                   NaN   NaN          NaN
+    :
+    : [12 rows x 26 columns]
+    :
+    :END:
+
+** DONE Save
+*** DONE Save
+
+    #+BEGIN_SRC ipython :session *iPython* :eval yes :results raw drawer :exports both :shebang "#!/usr/bin/env ipython\n# -*- coding: utf-8 -*-\n\n" :tangle yes
+
+DEMO_MODE = False
+
+if not DEMO_MODE:
+    df_to_xlsx( df_data=s2102_words_jdo_nall_unique_sylls , df_name="s2102_words_jdo_nall_unique_sylls" , df_path="data_out", add_time=False, verbose=1, )
+    df_to_xlsx( df_data=s2102_words_jdo_orig_unique_sylls , df_name="s2102_words_jdo_orig_unique_sylls" , df_path="data_out", add_time=False, verbose=1, )
+    print( "="*75 )
+    print("Saved *.xlsx")
+else:
+    print("*** Not saving any *.xlsx files -- DEMO_MODE is ON!!! ***")
+
+    #+END_SRC
+
+    #+RESULTS:
+    :RESULTS:
+    # Out[95]:
+    # output
+    : Saving DataFrame as: data_out/s2102_words_jdo_nall_unique_sylls.xlsx
+    : Saving DataFrame as: data_out/s2102_words_jdo_orig_unique_sylls.xlsx
+    : ===========================================================================
+    : Saved *.xlsx
+    :
+    :END:
+
+* IDEA TEMP: SGJP
+
+  #+BEGIN_SRC ipython :session *iPython* :eval yes :results raw drawer :exports both :shebang "#!/usr/bin/env ipython\n# -*- coding: utf-8 -*-\n\n" :tangle yes
+
+word = "tkli" # Homonim (tutaj jedno słowo jest rzeczownikiem i czasownikiem)
+temp = sgjp[ sgjp["WORD"].str.startswith( word )  ]
+
+df_list = [  temp,  ]
+df_info = [ "temp", ]
+df_head = 8
+df_tail = 0
+
+df_checkup_bulk( df_list=df_list, df_info=df_info, df_head=df_head, df_tail=df_tail, )
+
+  #+END_SRC
+
+  #+RESULTS:
+  :RESULTS:
+  # Out[31]:
+  # output
+  : ===========================================================================
+  : temp
+  : ===========================================================================
+  : idx count: 151
+  : row count: 5  ['WORD', 'ROOT', 'DESCR', 'CLASS', 'QUALIFIER']
+  : ---------------------------------------------------------------------------
+  :                 WORD     ROOT                                     DESCR CLASS QUALIFIER
+  : 6014677     tkliwcie  tkliwić                        impt:pl:sec:imperf            daw.
+  : 6014678    tkliwiąca  tkliwić              pact:sg:nom.voc:f:imperf:aff
+  : 6014679    tkliwiącą  tkliwić             pact:sg:acc.inst:f:imperf:aff
+  : 6014680  tkliwiącego  tkliwić              pact:sg:acc:m1.m2:imperf:aff
+  : 6014681  tkliwiącego  tkliwić         pact:sg:gen:m1.m2.m3.n:imperf:aff
+  : 6014682   tkliwiącej  tkliwić          pact:sg:gen.dat.loc:f:imperf:aff
+  : 6014683  tkliwiącemu  tkliwić         pact:sg:dat:m1.m2.m3.n:imperf:aff
+  : 6014684    tkliwiące  tkliwić  pact:pl:nom.acc.voc:m2.m3.f.n:imperf:aff
+  :
+  :END:
+
+
+* IDEA TEMP: CORPORA
+
+  #+BEGIN_SRC ipython :session *iPython* :eval yes :results raw drawer :exports both :shebang "#!/usr/bin/env ipython\n# -*- coding: utf-8 -*-\n\n" :tangle yes
+
+
+word = "tk" # Homonim (tutaj jedno słowo jest rzeczownikiem i czasownikiem)
+temp = s2000_words[ s2000_words["WORD"].str.startswith( word )  ]
+
+df_list = [  temp,  ]
+df_info = [ "temp", ]
+df_head = 8
+df_tail = 0
+
+df_checkup_bulk( df_list=df_list, df_info=df_info, df_head=df_head, df_tail=df_tail, )
+
+  #+END_SRC
+
+  #+RESULTS:
+  :RESULTS:
+  # Out[34]:
+  # output
+  : ===========================================================================
+  : temp
+  : ===========================================================================
+  : idx count: 6  [5730, 6888, 12543, 12656, 13389]
+  : row count: 2  ['WORD', 'FREQ']
+  : ---------------------------------------------------------------------------
+  : is FREQ sorted: True
+  : ---------------------------------------------------------------------------
+  :           WORD    FREQ
+  : 5730      tkwi  139407
+  : 6888    tkanki  117049
+  : 12543       tk   61475
+  : 12656   tkanek   60868
+  : 13389  tkaniny   57191
+  : 18900   tkanin   38783
+  :
+  :END:
