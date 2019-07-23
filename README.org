@@ -1,0 +1,14 @@
+
+
+#+TITLE: Supplementary Online Material for paper Construction Pipeline for Semantically Unbiased Stimuli in Polish for Further Use in Psycholinguistic and Social Psychology of Language Research
+
+* Info
+
+  This is a Supplementary Online Material for paper /Construction Pipeline for Semantically Unbiased Stimuli in Polish for Further Use in Psycholinguistic and Social Psychology of Language Research/
+  by J. Nikadon, J. Dołżycka and M. Formanowicz.
+
+
+  Org files contain code used for the pseudo-words generation and
+  selection. Spreadsheets contain pseudo-nouns and pseudo-verbs (both
+  raw and processed, together with results of their evaluation by
+  human subjects).
