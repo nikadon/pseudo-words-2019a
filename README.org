@@ -1,6 +1,6 @@
 
 
-#+TITLE: Supplementary Online Material for paper Construction Pipeline for Semantically Unbiased Stimuli in Polish for Further Use in Psycholinguistic and Social Psychology of Language Research
+#+TITLE: Supplementary Online Material for the paper Construction Pipeline for Semantically Unbiased Stimuli in Polish for Further Use in Psycholinguistic and Social Psychology of Language Research
 
 * Info
 
